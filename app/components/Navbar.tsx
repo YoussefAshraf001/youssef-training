@@ -35,3 +35,5 @@ export default function Navbar() {
     </>
   );
 }
+
+//active path should light up

@@ -42,3 +42,6 @@ export default function signin() {
 // Step 01 - Build the ui template
 // Step 02 - integrate auth api
 // Step 03 - review the success and error handling
+
+//MISSING
+// the sign in button should dim if both inputs are not entered.
