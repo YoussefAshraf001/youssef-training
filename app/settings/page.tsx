@@ -21,7 +21,6 @@ export default function Settings() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Populate form when user loads
   useEffect(() => {
     if (!user) return;
 
@@ -57,7 +56,6 @@ export default function Settings() {
         },
       };
 
-      // Only include password if provided
       if (form.password.trim()) {
         body.user.password = form.password;
       }
@@ -174,7 +172,11 @@ export default function Settings() {
                 loading ? "bg-green-300" : "bg-green-600 hover:bg-green-700"
               }`}
             >
-              {loading ? "Updating..." : "Update Settings"}
+              {loading ? (
+                <div className="w-6 h-6 border-4 border-white border-t-gray-400 rounded-full animate-spin"></div>
+              ) : (
+                "Update Settings"
+              )}
             </button>
           </div>
         </form>

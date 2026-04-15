@@ -1,9 +1,12 @@
+// Official Imports
 import type { Metadata } from "next";
 import { Source_Sans_3 } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+
+// Custom Imports
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import { Toaster } from "react-hot-toast";
 import AuthProvider from "./providers/AuthProvider";
 
 const sourceSans = Source_Sans_3({
@@ -40,17 +43,17 @@ export default function RootLayout({
                 borderRadius: "8px",
                 padding: "12px 16px",
                 fontSize: "16px",
-                border: "1px solid #e4e4e7", // neutral border
+                border: "1px solid #e4e4e7",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               },
               success: {
                 style: {
-                  border: "1px solid #22c55e", // green border
+                  border: "1px solid #22c55e",
                 },
               },
               error: {
                 style: {
-                  border: "1px solid #ef4444", // red border
+                  border: "1px solid #ef4444",
                 },
               },
             }}

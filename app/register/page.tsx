@@ -47,18 +47,11 @@ export default function Register() {
         console.log(data);
         return;
       }
-
-      // FOR DEV PURPOSES, WILL BE REMOVED LATER
-      console.log("SUCCESS:", data);
-      // -------
       toast.success("Welcome to Conduit", {
         icon: "👏",
       });
 
-      // save token
       localStorage.setItem("token", data.user.token);
-
-      // redirect
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -137,17 +130,3 @@ export default function Register() {
     </>
   );
 }
-
-// Youssef's To do plan for Sign In
-// Step 01 - Build the ui template
-// Step 02 - integrate auth API
-// Step 03 - review the success and error handling
-
-//MISSING
-// the sign up button should dim if both inputs are not entered.
-// the input should be bigger and have placeholder padding.
-
-//IMPROVMENTS
-// Added Eye toggle to view password.  *DONE*
-// Spaced out the content of the page.  *DONE*
-// Added Toast.  *DONE*

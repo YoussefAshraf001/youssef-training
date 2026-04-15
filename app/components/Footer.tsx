@@ -1,6 +1,5 @@
 // Official Imports
 import Image from "next/image";
-import Link from "next/link";
 
 // Custom Imports
 import logo from "../assets/conduit-logo.svg";

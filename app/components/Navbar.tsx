@@ -23,11 +23,6 @@ export default function Navbar() {
   const base = "text-zinc-400 hover:text-zinc-600";
   const active = "text-zinc-800";
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.reload(); // quick way to refresh UI
-  };
-
   return (
     <div className="w-full flex py-4">
       <div className="flex justify-evenly w-full px-2 py-1.5 gap-50">
@@ -112,6 +107,3 @@ export default function Navbar() {
     </div>
   );
 }
-
-// MISSING
-// Active path should light up. *DONE*
