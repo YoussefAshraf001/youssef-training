@@ -1,37 +1,143 @@
+"use client";
+
 // Official Imports
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-export default function signin() {
+export default function Signin() {
+  const router = useRouter();
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const isDisabled =
+    !form.email.trim() || !form.password.trim() || !isValidEmail(form.email);
+
+  const handleChange = (e: any) => {
+    setForm({
+      ...form,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const toastId = toast.loading("Signing in...");
+
+    if (!isValidEmail(form.email)) {
+      toast.error("Please enter a valid email");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("https://api.realworld.show/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user: {
+            email: form.email,
+            password: form.password,
+          },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error("Credentials invalid", { id: toastId });
+        return;
+      }
+
+      localStorage.setItem("token", data.user.token);
+
+      toast.success("Welcome back", {
+        id: toastId,
+        icon: "👋",
+      });
+
+      // redirect
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong", { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="flex items-center justify-center">
         <div className="flex flex-col justify-center">
-          <div className="pb-8 text-center">
+          <div className="pb-4 text-center">
             <h1 className="text-[40px]">Sign in</h1>
             <Link className="text-green-600" href="/register">
               Need an account?
             </Link>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-2">
             <div className="flex flex-col gap-3">
               <input
+                id="email"
                 type="text"
                 placeholder="Email"
-                className="h-13 w-70 lg:w-135 border border-zinc-200 rounded-lg placeholder:pl-6 placeholder:text-[20px]"
+                onChange={handleChange}
+                className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
-              <input
-                type="password"
-                placeholder="Password"
-                className="h-13 w-70 lg:w-135 border border-zinc-200 rounded-lg placeholder:pl-6 placeholder:text-[20px]"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  onChange={handleChange}
+                  className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPassword(!showPassword);
+                    console.log(showPassword);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
             <div className="flex justify-end py-5">
-              <button className="h-12.5 w-27 rounded-lg bg-green-500 text-white text-xl">
-                Sign in
+              <button
+                type="submit"
+                disabled={isDisabled || loading}
+                className={`h-[50px] w-[110px] flex justify-center items-center rounded-lg text-xl text-white transition
+                ${isDisabled || loading ? "bg-green-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"}
+              `}
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </>
@@ -44,4 +150,4 @@ export default function signin() {
 // Step 03 - review the success and error handling
 
 //MISSING
-// the sign in button should dim if both inputs are not entered.
+// the sign in button should dim if both inputs are not entered.  *DONE*
