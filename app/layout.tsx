@@ -7,7 +7,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import AuthProvider from "./providers/AuthProvider";
+import { AppShell } from "./components/AppShell";
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],
@@ -27,9 +27,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sourceSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
-        <AuthProvider>
+        <AppShell>
           <Navbar />
-
           <main className="grow">{children}</main>
 
           <Footer />
@@ -58,7 +57,7 @@ export default function RootLayout({
               },
             }}
           />
-        </AuthProvider>
+        </AppShell>
       </body>
     </html>
   );

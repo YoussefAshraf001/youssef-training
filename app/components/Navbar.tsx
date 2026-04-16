@@ -4,16 +4,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../providers/AuthProvider";
+import { FaRegEdit } from "react-icons/fa";
+import { CiSettings } from "react-icons/ci";
 
 // Custom Imports
 import logo from "../assets/conduit-logo.svg";
 import defaultavatar from "../assets/default-avatar.svg";
-import { FaRegEdit } from "react-icons/fa";
-import { CiSettings } from "react-icons/ci";
+import { useUser } from "../hooks/useUser";
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { data: user } = useUser();
   const pathname = usePathname();
 
   const isActive = (path: any) => pathname === path;

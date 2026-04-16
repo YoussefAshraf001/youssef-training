@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
+// Custom Imports
+import { useAuthStore } from "../store";
+
 export default function Signin() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -30,14 +33,18 @@ export default function Signin() {
     });
   };
 
+  const setToken = useAuthStore((s) => s.setToken);
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
 
     const toastId = toast.loading("Signing in...");
+    const email = form.email.trim();
+    const password = form.password.trim();
 
-    if (!isValidEmail(form.email)) {
-      toast.error("Please enter a valid email");
+    if (!isValidEmail(email)) {
+      toast.error("Please enter a valid email", { id: toastId });
       setLoading(false);
       return;
     }
@@ -50,8 +57,8 @@ export default function Signin() {
         },
         body: JSON.stringify({
           user: {
-            email: form.email,
-            password: form.password,
+            email,
+            password,
           },
         }),
       });
@@ -59,18 +66,26 @@ export default function Signin() {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error("Credentials invalid", { id: toastId });
+        console.log("[auth flow] login failed:", {
+          status: res.status,
+          response: data,
+          email,
+          passwordLength: password.length,
+        });
+
+        const message = getApiErrorMessage(data, "Email or password is invalid");
+
+        toast.error(message, { id: toastId });
         return;
       }
 
-      localStorage.setItem("token", data.user.token);
+      console.log("[auth flow] login token received:", data.user.token);
+      setToken(data.user.token);
 
       toast.success("Welcome back", {
         id: toastId,
-        icon: "👋",
       });
 
-      // redirect
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -95,8 +110,10 @@ export default function Signin() {
             <div className="flex flex-col gap-3">
               <input
                 id="email"
-                type="text"
+                type="email"
                 placeholder="Email"
+                autoComplete="email"
+                value={form.email}
                 onChange={handleChange}
                 className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -106,6 +123,7 @@ export default function Signin() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   autoComplete="current-password"
+                  value={form.password}
                   onChange={handleChange}
                   className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -142,4 +160,18 @@ export default function Signin() {
       </div>
     </>
   );
+}
+
+function getApiErrorMessage(data: any, fallback: string) {
+  if (!data?.errors) {
+    return data?.message || fallback;
+  }
+
+  return Object.entries(data.errors)
+    .flatMap(([field, messages]) =>
+      Array.isArray(messages)
+        ? messages.map((message) => `${field} ${message}`)
+        : [`${field} ${messages}`],
+    )
+    .join(", ");
 }

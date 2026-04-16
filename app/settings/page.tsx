@@ -1,14 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "../providers/AuthProvider";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useUser } from "../hooks/useUser";
+import { useAuthStore } from "../store";
 
 export default function Settings() {
-  const { user, setUser } = useAuth();
+  const { data: user } = useUser();
   const router = useRouter();
+  const setToken = useAuthStore((s) => s.setToken);
+  const logout = useAuthStore((s) => s.logout);
 
   const [form, setForm] = useState({
     username: "",
@@ -44,7 +47,7 @@ export default function Settings() {
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem("token");
+    const token = useAuthStore.getState().token;
 
     try {
       const body: any = {
@@ -57,7 +60,7 @@ export default function Settings() {
       };
 
       if (form.password.trim()) {
-        body.user.password = form.password;
+        body.user.password = form.password.trim();
       }
 
       const res = await fetch("https://api.realworld.show/api/user", {
@@ -79,8 +82,7 @@ export default function Settings() {
         return;
       }
 
-      setUser(data.user);
-      localStorage.setItem("token", data.user.token);
+      setToken(data.user.token);
       toast.success("Settings updated ✅");
       router.push(`/profile/${data.user.username}`);
     } catch (err) {
@@ -91,10 +93,15 @@ export default function Settings() {
     }
   };
 
-  if (!user) return <p className="text-center mt-10">Loading...</p>;
+  if (!user)
+    return (
+      <div className="flex justify-center">
+        <div className="mt-10 mx-auto w-6 h-6 border-4 border-white border-t-green-400 rounded-full animate-spin"></div>
+      </div>
+    );
 
   return (
-    <div className="flex justify-center mt-10">
+    <div className="flex justify-center mt-10 pb-6">
       <div className="w-full max-w-xl px-4">
         <h1 className="text-3xl text-center font-semibold mb-8">
           Your Settings
@@ -145,6 +152,7 @@ export default function Settings() {
               name="password"
               type={showPassword ? "text" : "password"}
               placeholder="New Password"
+              autoComplete="new-password"
               value={form.password}
               onChange={handleChange}
               className="w-full border border-zinc-300 rounded px-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -187,8 +195,8 @@ export default function Settings() {
         {/* Logout */}
         <button
           onClick={() => {
-            localStorage.removeItem("token");
-            window.location.reload();
+            logout();
+            router.push("/");
           }}
           className="border border-red-400 text-red-500 px-4 py-2 rounded text-sm hover:bg-red-50 transition"
         >

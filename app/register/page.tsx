@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 
+import { useAuthStore } from "../store";
+
 export default function Register() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -17,6 +19,7 @@ export default function Register() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const setToken = useAuthStore((s) => s.setToken);
 
   const isDisabled =
     !form.username.trim() || !form.email.trim() || !form.password.trim();
@@ -31,6 +34,12 @@ export default function Register() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
+    const toastId = toast.loading("Creating account...");
+    const user = {
+      username: form.username.trim(),
+      email: form.email.trim(),
+      password: form.password.trim(),
+    };
 
     try {
       const res = await fetch("https://api.realworld.show/api/users", {
@@ -38,20 +47,32 @@ export default function Register() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user: form }),
+        body: JSON.stringify({ user }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        console.log(data);
+        console.log("[auth flow] register failed:", {
+          status: res.status,
+          response: data,
+          email: user.email,
+          username: user.username,
+        });
+
+        toast.error(getApiErrorMessage(data, "Could not create account"), {
+          id: toastId,
+        });
         return;
       }
+      await verifyLoginCredentials(user.email, user.password);
+
       toast.success("Welcome to Conduit", {
+        id: toastId,
         icon: "👏",
       });
 
-      localStorage.setItem("token", data.user.token);
+      setToken(data.user.token);
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -77,13 +98,17 @@ export default function Register() {
                 id="username"
                 type="text"
                 placeholder="Username"
+                autoComplete="username"
+                value={form.username}
                 onChange={handleChange}
                 className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <input
                 id="email"
-                type="text"
+                type="email"
                 placeholder="Email"
+                autoComplete="email"
+                value={form.email}
                 onChange={handleChange}
                 className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -92,7 +117,8 @@ export default function Register() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  value={form.password}
                   onChange={handleChange}
                   className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -129,4 +155,43 @@ export default function Register() {
       </div>
     </>
   );
+}
+
+function getApiErrorMessage(data: any, fallback: string) {
+  if (!data?.errors) {
+    return data?.message || fallback;
+  }
+
+  return Object.entries(data.errors)
+    .flatMap(([field, messages]) =>
+      Array.isArray(messages)
+        ? messages.map((message) => `${field} ${message}`)
+        : [`${field} ${messages}`],
+    )
+    .join(", ");
+}
+
+async function verifyLoginCredentials(email: string, password: string) {
+  const res = await fetch("https://api.realworld.show/api/users/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user: {
+        email,
+        password,
+      },
+    }),
+  });
+
+  const data = await res.json();
+
+  console.log("[auth flow] immediate login check after register:", {
+    ok: res.ok,
+    status: res.status,
+    email,
+    passwordLength: password.length,
+    response: res.ok ? "token returned" : data,
+  });
 }
