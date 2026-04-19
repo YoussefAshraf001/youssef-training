@@ -1,6 +1,5 @@
 // Official Imports
 import Image from "next/image";
-import Link from "next/link";
 
 // Custom Imports
 import logo from "../assets/conduit-logo.svg";
@@ -10,9 +9,15 @@ export default function Footer() {
     <>
       <hr className="pb-4 opacity-10" />
       <div className="w-full pb-5">
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center gap-2">
           <div>
-            <Image src={logo} alt="conduit-logo" className="h-4 w-24" />
+            <Image
+              src={logo}
+              alt="conduit-logo"
+              width={60}
+              height={10}
+              priority
+            />
           </div>
           <div className="text-[12px]">
             <h3 className="text-zinc-300 flex gap-1">

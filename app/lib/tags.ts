@@ -1,0 +1,17 @@
+export const TAGS = [
+  "ai",
+  "api",
+  "architecture",
+  "backend",
+  "beginners",
+  "datascience",
+  "frontend",
+  "hooks",
+  "javascript",
+  "machinelearning",
+  "nodejs",
+  "programming",
+  "python",
+  "react",
+  "webdev",
+];
