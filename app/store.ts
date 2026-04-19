@@ -18,10 +18,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     set({ token });
 
-    console.log("[auth flow] zustand has the token stored:", {
-      storeToken: token,
-      localStorageToken: getStoredToken(),
-    });
+    // console.log("[auth flow] zustand has the token stored:", {
+    //   storeToken: token,
+    //   localStorageToken: getStoredToken(),
+    // });
   },
 
   logout: () => {

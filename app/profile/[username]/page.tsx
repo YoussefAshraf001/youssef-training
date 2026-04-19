@@ -65,17 +65,20 @@ export default function ProfilePage() {
         ? `author=${encodedUsername}`
         : `favorited=${encodedUsername}`;
 
-    return [`${apiRoot}/articles?${query}`, token] as const;
+    return [`${apiRoot}/articles?${query}&limit=10`, token] as const;
   }, [activeTab, encodedUsername, token, viewedUsername]);
 
   const {
     data: profileData,
     error: profileError,
     isLoading: profileLoading,
-  } = useSWR<{ profile: Profile }>(profileKey, fetchJson);
+  } = useSWR<{ profile: Profile }, Error>(profileKey, fetchJson);
 
-  const { data: articlesData, isLoading: articlesLoading } =
-    useSWR<ArticlesResponse>(articlesKey, fetchJson);
+  const {
+    data: articlesData,
+    error: articlesError,
+    isLoading: articlesLoading,
+  } = useSWR<ArticlesResponse, Error>(articlesKey, fetchJson);
 
   const profile = profileData?.profile ?? currentUserFallback();
   const articles = articlesData?.articles ?? [];
@@ -194,6 +197,10 @@ export default function ProfilePage() {
           <div className="pt-6">
             {articlesLoading ? (
               <p className="text-sm text-zinc-400">Loading articles...</p>
+            ) : articlesError ? (
+              <p className="text-sm text-red-500">
+                Unable to load articles: {articlesError.message}
+              </p>
             ) : articles.length === 0 ? (
               <p className="text-sm text-zinc-800">
                 No articles are here... yet.

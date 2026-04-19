@@ -1,6 +1,7 @@
 import { Article } from "../types/Articles";
 
 import defaultavatar from "../assets/default-avatar.svg";
+import Link from "next/link";
 
 export default function ArticlePreview({ article }: { article: Article }) {
   return (
@@ -25,8 +26,8 @@ export default function ArticlePreview({ article }: { article: Article }) {
         </span>
       </div>
 
-      <h2 className="m-0 text-xl font-semibold text-zinc-800">
-        {article.title}
+      <h2 className="m-0 text-xl font-semibold text-zinc-800 hover:text-green-500 duration-200 ease-in-out transition-all">
+        <Link href={`/article/${article.slug}`}>{article.title}</Link>
       </h2>
       <p className="mt-1 text-sm text-zinc-500">{article.description}</p>
 

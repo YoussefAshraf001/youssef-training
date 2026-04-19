@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import { useAuthStore } from "../store";
+import { useUser } from "../hooks/useUser";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Form } from "../types/Form";
+import { WithContext as ReactTags } from "react-tag-input";
+import { Tag } from "react-tag-input";
 
 export default function Editor() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const setToken = useAuthStore((s) => s.setToken);
-  const [form, setForm] = useState({
+  const { data: user } = useUser();
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [form, setForm] = useState<Form>({
     title: "",
     description: "",
     body: "",
@@ -21,6 +26,14 @@ export default function Editor() {
       ...form,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleTagDelete = (i: number) => {
+    setTags(tags.filter((tag, index) => index !== i));
+  };
+
+  const handleTagAddition = (tag: Tag) => {
+    setTags([...tags, tag]);
   };
 
   const handleSubmit = async (e: any) => {
@@ -38,14 +51,8 @@ export default function Editor() {
         },
       };
 
-      // Optional fields: tagList
-      if (form.tags && form.tags.length > 0) {
-        article.article.tagList = Array.isArray(form.tags)
-          ? form.tags
-          : form.tags
-              .split(",")
-              .map((t: string) => t.trim())
-              .filter(Boolean);
+      if (tags && tags.length > 0) {
+        article.article.tagList = tags.map((tag) => tag.text);
       }
 
       const body = article;
@@ -69,11 +76,10 @@ export default function Editor() {
         return;
       }
 
-      setToken(data.user.token);
       toast.success("Article Posted", {
         icon: "✅",
       });
-      router.push(`/profile/${data.user.username}`);
+      router.push(`/profile/${user?.username}`);
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong");
@@ -86,7 +92,7 @@ export default function Editor() {
     <>
       <div className="flex justify-center mt-10 pb-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Username */}
+          {/* Title */}
           <input
             name="title"
             placeholder="Article Title"
@@ -96,7 +102,7 @@ export default function Editor() {
             className="border border-zinc-300 rounded-xl w-150 h-13 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
-          {/* Bio */}
+          {/* Description */}
           <input
             name="description"
             placeholder="What's this article about?"
@@ -105,7 +111,7 @@ export default function Editor() {
             className="border border-zinc-300 rounded-xl w-150 h-13 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
-          {/* Email */}
+          {/* Body */}
           <textarea
             name="body"
             placeholder="Write your article (in markdown)"
@@ -115,13 +121,19 @@ export default function Editor() {
             className="border border-zinc-300 rounded-xl w-150 min-h-13 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
-          <input
-            name="tags"
+          <ReactTags
+            tags={tags}
+            handleDelete={handleTagDelete}
+            handleAddition={handleTagAddition}
+            inputFieldPosition="top"
+            autocomplete
             placeholder="Enter tags"
-            type="tags"
-            value={form.tags}
-            onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-150 h-13 pl-6 pt-0.5 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            classNames={{
+              tagInputField:
+                "border border-zinc-300 rounded-xl w-150 min-h-13 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500",
+              tag: "rounded-full bg-green-500 text-white px-3 py-1 mr-2 mb-2 inline-flex items-center",
+              remove: "ml-2 cursor-pointer text-white hover:text-gray-200",
+            }}
           />
 
           {/* Submit */}

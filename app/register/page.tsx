@@ -53,12 +53,12 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.log("[auth flow] register failed:", {
-          status: res.status,
-          response: data,
-          email: user.email,
-          username: user.username,
-        });
+        // console.log("[auth flow] register failed:", {
+        //   status: res.status,
+        //   response: data,
+        //   email: user.email,
+        //   username: user.username,
+        // });
 
         toast.error(getApiErrorMessage(data, "Could not create account"), {
           id: toastId,
@@ -127,7 +127,6 @@ export default function Register() {
                   type="button"
                   onClick={() => {
                     setShowPassword(!showPassword);
-                    console.log(showPassword);
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500"
                 >
@@ -187,11 +186,11 @@ async function verifyLoginCredentials(email: string, password: string) {
 
   const data = await res.json();
 
-  console.log("[auth flow] immediate login check after register:", {
-    ok: res.ok,
-    status: res.status,
-    email,
-    passwordLength: password.length,
-    response: res.ok ? "token returned" : data,
-  });
+  // console.log("[auth flow] immediate login check after register:", {
+  //   ok: res.ok,
+  //   status: res.status,
+  //   email,
+  //   passwordLength: password.length,
+  //   response: res.ok ? "token returned" : data,
+  // });
 }
