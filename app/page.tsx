@@ -1,15 +1,16 @@
 "use client";
 
+//Official Imports
 import { useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import { useParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { TAGS } from "./lib/tags";
+//Custom Imports
 import { Article } from "./types/Articles";
 import { useAuthStore } from "./store";
 import { useUser } from "./hooks/useUser";
 import defaultavatar from "./assets/default-avatar.svg";
-import { AnimatePresence, motion } from "framer-motion";
 import ConfirmModal from "./components/ConfirmModal";
 import TagsSidebar from "./components/TagsSidebar";
 
