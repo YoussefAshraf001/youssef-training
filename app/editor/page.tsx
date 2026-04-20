@@ -42,6 +42,11 @@ export default function Editor() {
 
     const token = useAuthStore.getState().token;
 
+    if (!form.title || !form.description || !form.body) {
+      toast.error("All fields are required");
+      return;
+    }
+
     try {
       const article: any = {
         article: {
@@ -68,10 +73,17 @@ export default function Editor() {
 
       const data = await res.json();
 
-      if (!res.ok) {
+      console.log("Submitting:", body);
+      console.log("Token:", token);
+      console.log("Status:", res.status);
+      console.log("Response:", data);
+
+      if (!res.ok || !data.article) {
         const errorMsg = data?.errors
           ? Object.values(data.errors).flat().join(", ")
-          : "Update failed";
+          : "Failed to create article";
+
+        console.error("API ERROR:", data);
         toast.error(errorMsg);
         return;
       }
