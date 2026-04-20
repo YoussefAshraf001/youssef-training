@@ -43,7 +43,7 @@ function Page() {
         const data = await res.json();
         const { article: articleData } = data;
         setArticle(articleData);
-        console.log(articleData);
+        // console.log(articleData);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");

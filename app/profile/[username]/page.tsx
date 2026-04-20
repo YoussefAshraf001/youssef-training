@@ -16,6 +16,7 @@ import { Profile } from "../../types/Profile";
 import { ArticlesResponse } from "../../types/Articles";
 import TabButton from "@/app/components/TabButton";
 import ArticlePreview from "@/app/components/ArticlePreview";
+import { motion } from "framer-motion";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -136,7 +137,13 @@ export default function ProfilePage() {
 
   return (
     <main className="bg-white">
-      <section className="pt-10">
+      <motion.section
+        className="pt-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="mx-auto max-w-4xl px-4 pb-6">
           <div className="flex flex-col justify-center items-center">
             <div className="h-24 w-24 overflow-hidden">
@@ -175,9 +182,15 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="px-4 py-8">
+      <motion.section
+        className="px-4 py-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="mx-auto max-w-3xl">
           <div className="flex border-b border-zinc-300 text-sm">
             <TabButton
@@ -212,7 +225,7 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
-      </section>
+      </motion.section>
     </main>
   );
 }

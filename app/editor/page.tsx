@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useAuthStore } from "../store";
-import { useUser } from "../hooks/useUser";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Tag, WithContext as ReactTags } from "react-tag-input";
+
+import { useUser } from "../hooks/useUser";
+import { useAuthStore } from "../store";
 import { Form } from "../types/Form";
-import { WithContext as ReactTags } from "react-tag-input";
-import { Tag } from "react-tag-input";
+import { motion } from "framer-motion";
 
 export default function Editor() {
   const router = useRouter();
@@ -73,11 +74,6 @@ export default function Editor() {
 
       const data = await res.json();
 
-      console.log("Submitting:", body);
-      console.log("Token:", token);
-      console.log("Status:", res.status);
-      console.log("Response:", data);
-
       if (!res.ok || !data.article) {
         const errorMsg = data?.errors
           ? Object.values(data.errors).flat().join(", ")
@@ -102,7 +98,13 @@ export default function Editor() {
 
   return (
     <>
-      <div className="flex justify-center mt-10 pb-6">
+      <motion.div
+        className="flex justify-center mt-10 pb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Title */}
           <input
@@ -165,7 +167,7 @@ export default function Editor() {
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </>
   );
 }

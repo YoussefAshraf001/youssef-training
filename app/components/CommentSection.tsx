@@ -24,12 +24,13 @@ function CommentSection({ article, onCommentPosted }: any) {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
           },
-          body: JSON.stringify({ comment: { body: comment } }),
+          body: JSON.stringify({
+            comment: { body: comment, article: article._id },
+          }),
         },
       );
 
       const data = await res.json();
-
       if (!res.ok) {
         console.error("Comment API error:", res.status, data);
         const message = data?.errors

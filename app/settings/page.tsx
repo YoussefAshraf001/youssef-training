@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useUser } from "../hooks/useUser";
 import { useAuthStore } from "../store";
+import { motion } from "framer-motion";
 
 export default function Settings() {
   const { data: user } = useUser();
@@ -101,7 +102,13 @@ export default function Settings() {
     );
 
   return (
-    <div className="flex justify-center mt-10 pb-6">
+    <motion.div
+      className="flex justify-center mt-10 pb-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="w-full max-w-xl px-4">
         <h1 className="text-3xl text-center font-semibold mb-8">
           Your Settings
@@ -203,6 +210,6 @@ export default function Settings() {
           Or click here to logout.
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
