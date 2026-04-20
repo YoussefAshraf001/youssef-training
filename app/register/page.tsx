@@ -101,7 +101,7 @@ export default function Register() {
                 autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
-                className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <input
                 id="email"
@@ -110,7 +110,7 @@ export default function Register() {
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <div className="relative">
                 <input
@@ -120,7 +120,7 @@ export default function Register() {
                   autoComplete="new-password"
                   value={form.password}
                   onChange={handleChange}
-                  className="h-[55px] w-[320px] lg:w-[540px] border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
 
                 <button
@@ -138,7 +138,7 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={isDisabled}
-                className={`h-[50px] w-[110px] flex justify-center items-center rounded-lg text-xl text-white transition
+                className={`h-12.5 w-27.5 flex justify-center items-center rounded-lg text-xl text-white transition
                 ${isDisabled ? "bg-green-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"}
               `}
               >
