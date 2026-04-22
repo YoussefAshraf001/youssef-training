@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Tag, WithContext as ReactTags } from "react-tag-input";
 
 import { useUser } from "../hooks/useUser";
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 import { Form } from "../types/Form";
 import { motion } from "framer-motion";
 
@@ -96,6 +96,18 @@ export default function Editor() {
     }
   };
 
+  const handleDrag = (tag: Tag, currPos: number, newPos: number) => {
+    const newTags = [...tags];
+
+    // remove from old position
+    newTags.splice(currPos, 1);
+
+    // insert into new position
+    newTags.splice(newPos, 0, tag);
+
+    setTags(newTags);
+  };
+
   return (
     <>
       <motion.div
@@ -105,7 +117,7 @@ export default function Editor() {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4 w-full max-w-2xl px-4">
           {/* Title */}
           <input
             name="title"
@@ -113,7 +125,7 @@ export default function Editor() {
             type="text"
             value={form.title}
             onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-150 h-13 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
           {/* Description */}
@@ -122,7 +134,7 @@ export default function Editor() {
             placeholder="What's this article about?"
             value={form.description}
             onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-150 h-13 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
           {/* Body */}
@@ -132,7 +144,7 @@ export default function Editor() {
             rows={5}
             value={form.body}
             onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-150 min-h-13 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="border border-zinc-300 rounded-xl w-full min-h-12 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
           <ReactTags
@@ -142,9 +154,12 @@ export default function Editor() {
             inputFieldPosition="top"
             autocomplete
             placeholder="Enter tags"
+            handleDrag={handleDrag}
+            allowDragDrop
             classNames={{
+              tagInput: "mb-3",
               tagInputField:
-                "border border-zinc-300 rounded-xl w-150 min-h-13 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500",
+                "border border-zinc-300 rounded-xl w-full min-h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500",
               tag: "rounded-full bg-green-500 text-white px-3 py-1 mr-2 mb-2 inline-flex items-center",
               remove: "ml-2 cursor-pointer text-white hover:text-gray-200",
             }}

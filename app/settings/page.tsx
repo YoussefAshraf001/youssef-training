@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useUser } from "../hooks/useUser";
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 import { motion } from "framer-motion";
 
 export default function Settings() {

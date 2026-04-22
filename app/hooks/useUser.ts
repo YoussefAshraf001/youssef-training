@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 import { fetchUser } from "../api/user";
 
 export const useUser = () => {

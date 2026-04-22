@@ -6,9 +6,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 // Custom Imports
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 
 export default function Signin() {
   const router = useRouter();
@@ -100,7 +101,13 @@ export default function Signin() {
 
   return (
     <>
-      <div className="flex items-center justify-center">
+      <motion.div
+        className="flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="flex flex-col justify-center">
           <div className="pb-4 text-center">
             <h1 className="text-[40px]">Sign in</h1>
@@ -160,7 +167,7 @@ export default function Signin() {
             </div>
           </form>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

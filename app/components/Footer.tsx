@@ -8,7 +8,7 @@ export default function Footer() {
   return (
     <>
       <hr className="pb-4 opacity-10" />
-      <div className="w-full pb-5">
+      <div className="w-full pb-5 px-4 lg:px-0">
         <div className="flex justify-center items-center gap-2">
           <div>
             <Image

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Comment } from "../types/Articles";
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 
 interface CommentListProps {
   slug: string;

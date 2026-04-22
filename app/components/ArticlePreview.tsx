@@ -2,6 +2,7 @@ import { Article } from "../types/Articles";
 
 import defaultavatar from "../assets/default-avatar.svg";
 import Link from "next/link";
+import { FaHeart } from "react-icons/fa";
 
 export default function ArticlePreview({ article }: { article: Article }) {
   return (
@@ -21,8 +22,8 @@ export default function ArticlePreview({ article }: { article: Article }) {
           </div>
         </div>
 
-        <span className="rounded border border-green-500 px-2 py-1 text-xs text-green-600">
-          {article.favoritesCount}
+        <span className="flex items-center gap-1 rounded border border-green-500 px-2 py-1 text-xs text-green-600">
+          <FaHeart /> {article.favoritesCount}
         </span>
       </div>
 

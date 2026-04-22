@@ -7,8 +7,10 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
+import { motion } from "framer-motion";
 
-import { useAuthStore } from "../store";
+// Custom Imports
+import { useAuthStore } from "../store/AuthStore";
 
 export default function Register() {
   const router = useRouter();
@@ -83,7 +85,13 @@ export default function Register() {
 
   return (
     <>
-      <div className="flex items-center justify-center">
+      <motion.div
+        className="flex items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="flex flex-col justify-center">
           <div className="pb-4 text-center">
             <h1 className="text-[40px]">Sign up</h1>
@@ -151,7 +159,7 @@ export default function Register() {
             </div>
           </form>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

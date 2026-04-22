@@ -10,13 +10,13 @@ import { useRouter } from "next/navigation";
 
 // Custom Imports
 import { useUser } from "@/app/hooks/useUser";
-import { useAuthStore } from "@/app/store";
+import { useAuthStore } from "@/app/store/AuthStore";
 import defaultavatar from "../../assets/default-avatar.svg";
 import { Profile } from "../../types/Profile";
-import { ArticlesResponse } from "../../types/Articles";
+import { Article, ArticlesResponse } from "../../types/Articles";
 import TabButton from "@/app/components/TabButton";
-import ArticlePreview from "@/app/components/ArticlePreview";
 import { motion } from "framer-motion";
+import ArticleCard from "@/app/components/ArticleCard";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -44,6 +44,11 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<"mine" | "favorited">("mine");
   const token = useAuthStore((s) => s.token);
   const { data: currentUser, isLoading: currentUserLoading } = useUser();
+
+  const [hoveredArticle, setHoveredArticle] = useState<string | null>(null);
+  const [hoveredAuthor, setHoveredAuthor] = useState<string | null>(null);
+  const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
+  const [editBlocked, setEditBlocked] = useState(false);
 
   const viewedUsername =
     routeUsername === "undefined" && currentUser?.username
@@ -79,6 +84,7 @@ export default function ProfilePage() {
     data: articlesData,
     error: articlesError,
     isLoading: articlesLoading,
+    mutate: mutateArticles,
   } = useSWR<ArticlesResponse, Error>(articlesKey, fetchJson);
 
   const profile = profileData?.profile ?? currentUserFallback();
@@ -105,6 +111,35 @@ export default function ProfilePage() {
       following: false,
     };
   }
+
+  const handleArticleLike = async (article: Article) => {
+    const method = article.favorited ? "DELETE" : "POST";
+
+    const res = await fetch(`${apiRoot}/articles/${article.slug}/favorite`, {
+      method,
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    mutateArticles((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        articles:
+          activeTab === "favorited" && article.favorited
+            ? prev.articles.filter((a) => a.slug !== article.slug)
+            : prev.articles.map((a) =>
+                a.slug === article.slug ? data.article : a,
+              ),
+      };
+    }, false);
+
+    mutateArticles();
+  };
 
   if (profileLoading || (currentUserLoading && !profile)) {
     return (
@@ -220,7 +255,19 @@ export default function ProfilePage() {
               </p>
             ) : (
               articles.map((article) => (
-                <ArticlePreview key={article.slug} article={article} />
+                <ArticleCard
+                  key={article.slug}
+                  article={article}
+                  currentUser={currentUser}
+                  hoveredArticle={hoveredArticle}
+                  hoveredAuthor={hoveredAuthor}
+                  setHoveredArticle={setHoveredArticle}
+                  setHoveredAuthor={setHoveredAuthor}
+                  onLike={handleArticleLike}
+                  onFollow={() => {}} // optional for now
+                  onDelete={(slug) => setDeleteSlug(slug)}
+                  onEditBlocked={() => setEditBlocked(true)}
+                />
               ))
             )}
           </div>

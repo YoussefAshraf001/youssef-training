@@ -8,7 +8,13 @@ type TagsResponse = {
   tags: string[];
 };
 
-export default function TagsSidebar() {
+export default function TagsSidebar({
+  onTagClick,
+  selectedTag,
+}: {
+  onTagClick: (tag: string) => void;
+  selectedTag: string | null;
+}) {
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -31,8 +37,8 @@ export default function TagsSidebar() {
   }, []);
 
   return (
-    <div className="w-50">
-      <div className="bg-zinc-50 p-4 rounded">
+    <div className="flex mx-auto w-full lg:w-50">
+      <div className="p-4 rounded">
         <h3 className="text-sm font-semibold mb-3">Popular Tags</h3>
 
         {loading ? (
@@ -42,7 +48,12 @@ export default function TagsSidebar() {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-zinc-200 hover:bg-zinc-300 transition px-2 py-1 rounded-full cursor-pointer"
+                className={`px-2 py-1 rounded-full cursor-pointer transition ${
+                  selectedTag === tag
+                    ? "bg-green-500 text-white"
+                    : "border border-zinc-200 hover:bg-zinc-200"
+                }`}
+                onClick={() => onTagClick(tag)}
               >
                 {tag}
               </span>

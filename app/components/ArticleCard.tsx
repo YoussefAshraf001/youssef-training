@@ -30,8 +30,12 @@ export default function ArticleCard({
   onEditBlocked,
 }: Props) {
   return (
-    <div
-      className="border-b pb-6 relative"
+    <motion.div
+      className="rounded border-b border-zinc-200 p-4 relative bg-white"
+      whileHover={{
+        backgroundColor: "#f4f4f5",
+      }}
+      transition={{ duration: 0.2 }}
       onMouseEnter={() => setHoveredArticle(article.slug)}
       onMouseLeave={() => setHoveredArticle(null)}
     >
@@ -69,13 +73,13 @@ export default function ArticleCard({
             >
               <button
                 onClick={() => onFollow(article.author)}
-                className={`text-xs px-2 py-1 rounded border transition
-                                ${
-                                  article.author.following
-                                    ? "bg-green-500 text-white border-green-500"
-                                    : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
-                                }
-                              `}
+                className={`text-xs px-2 py-1 rounded border transition cursor-pointer
+                   ${
+                     article.author.following
+                       ? "bg-green-500 text-white border-green-500"
+                       : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+                   }
+                   `}
               >
                 {article.author.following ? "Following" : "Follow"}
               </button>
@@ -113,12 +117,12 @@ export default function ArticleCard({
           <div
             onClick={() => onLike(article)}
             className={`flex items-center gap-1 border rounded-md cursor-pointer text-xs px-2 py-1
-                              ${
-                                article.favorited
-                                  ? "bg-green-500 text-white border-green-500"
-                                  : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
-                              }
-                            `}
+               ${
+                 article.favorited
+                   ? "bg-green-500 text-white border-green-500"
+                   : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+               }
+               `}
           >
             <FaHeart /> {article.favoritesCount}
           </div>
@@ -127,6 +131,24 @@ export default function ArticleCard({
 
       <h2>{article.title}</h2>
       <p>{article.description}</p>
-    </div>
+
+      <div className="flex justify-between gap-2 mt-4">
+        <div>
+          <button onClick={onEditBlocked} className="text-zinc-400 text-xs">
+            Read More
+          </button>
+        </div>
+        <div className="max-w-60 flex items-center gap-2 flex-wrap justify-end">
+          {article.tagList.map((tag) => (
+            <span
+              key={tag}
+              className="text-xs bg-zinc-200 px-2 py-1 rounded-full"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
   );
 }

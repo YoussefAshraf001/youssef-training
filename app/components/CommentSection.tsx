@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-import { useAuthStore } from "../store";
+import { useAuthStore } from "../store/AuthStore";
 
 function CommentSection({ article, onCommentPosted }: any) {
   const [comment, setComment] = useState("");
