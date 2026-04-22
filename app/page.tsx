@@ -13,6 +13,7 @@ import { useUser } from "./hooks/useUser";
 import ConfirmModal from "./components/ConfirmModal";
 import TagsSidebar from "./components/TagsSidebar";
 import ArticleCard from "./components/ArticleCard";
+import toast from "react-hot-toast";
 
 export default function Home() {
   // ZUSTAND STORED USER DATA
@@ -78,11 +79,15 @@ export default function Home() {
     setPage(1);
   }, [tab, selectedTag]);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
+  // useEffect(() => {
+  //   window.scrollTo({ top: 0, behavior: "smooth" });
+  // }, [page]);
 
   const handleArticleLike = async (article: Article) => {
+    if (!isLoggedIn) {
+      toast("You must be logged in to like articles.", { icon: "⚠️" });
+      return;
+    }
     try {
       const method = article.favorited ? "DELETE" : "POST";
 
@@ -108,6 +113,11 @@ export default function Home() {
   };
 
   const handleFollow = async (author: any) => {
+    if (!isLoggedIn) {
+      toast("You must be logged in to follow users.", { icon: "⚠️" });
+      return;
+    }
+
     try {
       const method = author.following ? "DELETE" : "POST";
 
@@ -303,23 +313,23 @@ export default function Home() {
               ))}
             </motion.div>
           )}
-          <div>
-            <div className="flex justify-center gap-2 my-8">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`px-3 py-1 border rounded ${
-                    page === p
-                      ? "bg-green-500 text-white border-green-500"
-                      : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
+
+          <div className="flex justify-center gap-2 pt-15 pb-4">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1 border rounded ${
+                  page === p
+                    ? "bg-green-500 text-white border-green-500"
+                    : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
           </div>
+          <hr className="text-zinc-200" />
         </div>
 
         {/* RIGHT SIDE (TAGS) */}

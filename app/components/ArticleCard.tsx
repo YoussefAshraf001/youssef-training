@@ -31,7 +31,7 @@ export default function ArticleCard({
 }: Props) {
   return (
     <motion.div
-      className="rounded border-b border-zinc-200 p-4 relative bg-white"
+      className="border-b border-zinc-200 p-4 relative bg-white"
       whileHover={{
         backgroundColor: "#f4f4f5",
       }}
