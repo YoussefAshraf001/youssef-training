@@ -15,8 +15,9 @@ import defaultavatar from "../../assets/default-avatar.svg";
 import { Profile } from "../../types/Profile";
 import { Article, ArticlesResponse } from "../../types/Articles";
 import TabButton from "@/app/components/TabButton";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import ArticleCard from "@/app/components/ArticleCard";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -48,6 +49,7 @@ export default function ProfilePage() {
   const [hoveredArticle, setHoveredArticle] = useState<string | null>(null);
   const [hoveredAuthor, setHoveredAuthor] = useState<string | null>(null);
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [editBlocked, setEditBlocked] = useState(false);
 
   const viewedUsername =
@@ -139,6 +141,37 @@ export default function ProfilePage() {
     }, false);
 
     mutateArticles();
+  };
+
+  const handleDelete = async (slug: string) => {
+    if (!slug) return;
+
+    setDeleting(true);
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/articles/${slug}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      mutateArticles((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          articles: prev.articles.filter((a) => a.slug !== slug),
+        };
+      }, false);
+
+      mutateArticles();
+      setDeleteSlug(null);
+    } catch (err) {
+      console.error("Delete failed:", err);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (profileLoading || (currentUserLoading && !profile)) {
@@ -264,14 +297,28 @@ export default function ProfilePage() {
                   setHoveredArticle={setHoveredArticle}
                   setHoveredAuthor={setHoveredAuthor}
                   onLike={handleArticleLike}
-                  onFollow={() => {}} // optional for now
-                  onDelete={(slug) => setDeleteSlug(slug)}
+                  onFollow={() => {}}
+                  onDelete={(slug) => {
+                    setDeleteSlug(slug);
+                  }}
                   onEditBlocked={() => setEditBlocked(true)}
                 />
               ))
             )}
           </div>
         </div>
+        <AnimatePresence>
+          {deleteSlug && (
+            <ConfirmModal
+              open={!!deleteSlug}
+              onCancel={() => setDeleteSlug(null)}
+              onConfirm={() => handleDelete(deleteSlug)}
+              loading={deleting}
+              title="Delete article?"
+              message="This will permanently remove the article."
+            />
+          )}
+        </AnimatePresence>
       </motion.section>
     </main>
   );

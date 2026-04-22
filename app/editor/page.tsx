@@ -117,7 +117,10 @@ export default function Editor() {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <form className="flex flex-col gap-4 w-full max-w-2xl px-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 w-full max-w-2xl px-4"
+        >
           {/* Title */}
           <input
             name="title"
