@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tag, WithContext as ReactTags } from "react-tag-input";
@@ -199,86 +199,88 @@ export default function Editor() {
     loadArticle();
   }, [editSlug, token]);
   return (
-    <motion.div
-      className="flex justify-center mt-10 pb-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      {loadingArticle ? (
-        <div className="flex justify-center py-10">
-          <div className="w-6 h-6 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 w-full max-w-2xl px-4"
-        >
-          <input
-            ref={titleInputRef}
-            name="title"
-            placeholder="Article Title"
-            type="text"
-            value={form.title}
-            onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-
-          <input
-            name="description"
-            placeholder="What's this article about?"
-            value={form.description}
-            onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-
-          <textarea
-            name="body"
-            placeholder="Write your article (in markdown)"
-            rows={5}
-            value={form.body}
-            onChange={handleChange}
-            className="border border-zinc-300 rounded-xl w-full min-h-12 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-
-          <ReactTags
-            tags={tags}
-            handleDelete={handleTagDelete}
-            handleAddition={handleTagAddition}
-            inputFieldPosition="top"
-            autocomplete
-            placeholder="Enter tags"
-            handleDrag={handleDrag}
-            allowDragDrop
-            classNames={{
-              tagInput: "mb-3",
-              tagInputField:
-                "border border-zinc-300 rounded-xl w-full min-h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500",
-              tag: "rounded-full bg-green-500 text-white px-3 py-1 mr-2 mb-2 inline-flex items-center",
-              remove: "ml-2 cursor-pointer text-white hover:text-gray-200",
-            }}
-          />
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-36 h-14 flex justify-center items-center rounded-lg text-xl text-white transition cursor-pointer ${
-                loading ? "bg-green-300" : "bg-green-600 hover:bg-green-700"
-              }`}
-            >
-              {loading ? (
-                <div className="w-6 h-6 border-4 border-white border-t-gray-400 rounded-full animate-spin"></div>
-              ) : isEditing ? (
-                "Update Article"
-              ) : (
-                "Publish Article"
-              )}
-            </button>
+    <Suspense fallback={<div>Loading...</div>}>
+      <motion.div
+        className="flex justify-center mt-10 pb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        {loadingArticle ? (
+          <div className="flex justify-center py-10">
+            <div className="w-6 h-6 border-4 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
           </div>
-        </form>
-      )}
-    </motion.div>
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-4 w-full max-w-2xl px-4"
+          >
+            <input
+              ref={titleInputRef}
+              name="title"
+              placeholder="Article Title"
+              type="text"
+              value={form.title}
+              onChange={handleChange}
+              className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <input
+              name="description"
+              placeholder="What's this article about?"
+              value={form.description}
+              onChange={handleChange}
+              className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <textarea
+              name="body"
+              placeholder="Write your article (in markdown)"
+              rows={5}
+              value={form.body}
+              onChange={handleChange}
+              className="border border-zinc-300 rounded-xl w-full min-h-12 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <ReactTags
+              tags={tags}
+              handleDelete={handleTagDelete}
+              handleAddition={handleTagAddition}
+              inputFieldPosition="top"
+              autocomplete
+              placeholder="Enter tags"
+              handleDrag={handleDrag}
+              allowDragDrop
+              classNames={{
+                tagInput: "mb-3",
+                tagInputField:
+                  "border border-zinc-300 rounded-xl w-full min-h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500",
+                tag: "rounded-full bg-green-500 text-white px-3 py-1 mr-2 mb-2 inline-flex items-center",
+                remove: "ml-2 cursor-pointer text-white hover:text-gray-200",
+              }}
+            />
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-36 h-14 flex justify-center items-center rounded-lg text-xl text-white transition cursor-pointer ${
+                  loading ? "bg-green-300" : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {loading ? (
+                  <div className="w-6 h-6 border-4 border-white border-t-gray-400 rounded-full animate-spin"></div>
+                ) : isEditing ? (
+                  "Update Article"
+                ) : (
+                  "Publish Article"
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+      </motion.div>
+    </Suspense>
   );
 }
