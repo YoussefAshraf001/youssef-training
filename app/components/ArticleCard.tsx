@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Article } from "../types/Articles";
 import defaultavatar from "../assets/default-avatar.svg";
 import { FaHeart, FaRegEdit } from "react-icons/fa";
@@ -14,7 +15,7 @@ type Props = {
   onLike: (article: Article) => void;
   onFollow: (author: any) => void;
   onDelete: (slug: string) => void;
-  onEditBlocked: () => void;
+  onEdit: (slug: string) => void;
 };
 
 export default function ArticleCard({
@@ -27,7 +28,7 @@ export default function ArticleCard({
   onLike,
   onFollow,
   onDelete,
-  onEditBlocked,
+  onEdit,
 }: Props) {
   return (
     <motion.div
@@ -52,15 +53,23 @@ export default function ArticleCard({
           />
 
           <div className="text-sm">
-            <p className="text-green-600">{article.author.username}</p>
+            <Link
+              href={`/profile/${article.author.username}`}
+              className="text-green-600 hover:underline hover:text-green-800 transition"
+            >
+              {article.author.username}
+            </Link>
             <p className="text-zinc-400 text-xs">
-              {new Date(article.createdAt).toDateString()}
+              {new Date(article.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Follow */}
+        {/* <div className="flex items-center gap-2">
           {article.author.username !== currentUser?.username && (
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -86,7 +95,6 @@ export default function ArticleCard({
             </motion.div>
           )}
 
-          {/* Edit/Delete */}
           {article.author.username === currentUser?.username && (
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -99,15 +107,15 @@ export default function ArticleCard({
               className="flex gap-2"
             >
               <button
-                onClick={onEditBlocked}
-                className="flex items-center gap-1 text-xs border border-blue-400 text-blue-600 px-2 py-1 rounded hover:bg-blue-500 hover:text-white transition"
+                onClick={() => onEdit(article.slug)}
+                className="h-6 w-25 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
               >
                 <FaRegEdit /> Edit Article
               </button>
 
               <button
                 onClick={() => onDelete(article.slug)}
-                className="flex items-center gap-1 text-xs border border-red-400 text-red-600 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition"
+                className="h-6 w-31 text-sm text-red-600 hover:text-white flex justify-center items-center gap-1 border border-red-400 hover:bg-red-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
               >
                 <MdDeleteOutline /> Delete Article
               </button>
@@ -126,23 +134,30 @@ export default function ArticleCard({
           >
             <FaHeart /> {article.favoritesCount}
           </div>
-        </div>
+        </div> */}
       </div>
 
-      <h2>{article.title}</h2>
-      <p>{article.description}</p>
+      <Link href={`/article/${article.slug}`} className="block">
+        <h2 className="font-semibold text-3xl text-zinc-700 hover:text-green-700 transition">
+          {article.title}
+        </h2>
+      </Link>
+      <p className="text-zinc-400">{article.description}</p>
 
       <div className="flex justify-between gap-2 mt-4">
         <div>
-          <button onClick={onEditBlocked} className="text-zinc-400 text-xs">
+          <Link
+            href={`/article/${article.slug}`}
+            className="text-zinc-400 text-xs hover:text-green-600 transition"
+          >
             Read More
-          </button>
+          </Link>
         </div>
-        <div className="max-w-60 flex items-center gap-2 flex-wrap justify-end">
+        <div className="max-w-80 flex items-center gap-2 flex-wrap justify-end">
           {article.tagList.map((tag) => (
             <span
               key={tag}
-              className="text-xs bg-zinc-200 px-2 py-1 rounded-full"
+              className="text-xs text-zinc-400 border border-zinc-200 px-2 py-1 rounded-full"
             >
               {tag}
             </span>

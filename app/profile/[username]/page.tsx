@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { CiSettings } from "react-icons/ci";
+import { IoMdAdd } from "react-icons/io";
 import { useRouter } from "next/navigation";
 
 // Custom Imports
@@ -18,6 +19,7 @@ import TabButton from "@/app/components/TabButton";
 import { AnimatePresence, motion } from "framer-motion";
 import ArticleCard from "@/app/components/ArticleCard";
 import ConfirmModal from "@/app/components/ConfirmModal";
+import toast from "react-hot-toast";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -50,7 +52,6 @@ export default function ProfilePage() {
   const [hoveredAuthor, setHoveredAuthor] = useState<string | null>(null);
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [editBlocked, setEditBlocked] = useState(false);
 
   const viewedUsername =
     routeUsername === "undefined" && currentUser?.username
@@ -80,6 +81,7 @@ export default function ProfilePage() {
     data: profileData,
     error: profileError,
     isLoading: profileLoading,
+    mutate: mutateProfile,
   } = useSWR<{ profile: Profile }, Error>(profileKey, fetchJson);
 
   const {
@@ -141,6 +143,53 @@ export default function ProfilePage() {
     }, false);
 
     mutateArticles();
+  };
+
+  const handleFollowProfile = async () => {
+    if (!profile || isOwnProfile) return;
+
+    if (!token) {
+      toast("You must be logged in to follow users.", { icon: "⚠️" });
+      return;
+    }
+
+    try {
+      const method = profile.following ? "DELETE" : "POST";
+
+      const res = await fetch(
+        `${apiRoot}/profiles/${profile.username}/follow`,
+        {
+          method,
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Failed to update follow status");
+      }
+
+      mutateProfile({ profile: data.profile }, false);
+
+      mutateArticles((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          articles: prev.articles.map((article) =>
+            article.author.username === data.profile.username
+              ? { ...article, author: data.profile }
+              : article,
+          ),
+        };
+      }, false);
+    } catch (err) {
+      console.error("Error toggling follow:", err);
+      toast.error("Could not update follow status");
+    }
   };
 
   const handleDelete = async (slug: string) => {
@@ -243,8 +292,14 @@ export default function ProfilePage() {
             ) : (
               <button
                 type="button"
-                className="inline-flex h-7 items-center rounded border border-zinc-400 bg-transparent px-3 text-sm text-zinc-500 hover:bg-zinc-200"
+                onClick={handleFollowProfile}
+                className={`inline-flex h-7 items-center gap-1 rounded border px-3 text-sm transition ${
+                  profile.following
+                    ? "border-green-500 bg-green-500 text-white"
+                    : "border-zinc-400 bg-transparent text-zinc-500 hover:bg-zinc-200"
+                }`}
               >
+                <IoMdAdd />
                 {profile.following ? "Unfollow" : "Follow"} {profile.username}
               </button>
             )}
@@ -301,7 +356,9 @@ export default function ProfilePage() {
                   onDelete={(slug) => {
                     setDeleteSlug(slug);
                   }}
-                  onEditBlocked={() => setEditBlocked(true)}
+                  onEdit={(slug) =>
+                    router.push(`/editor?slug=${encodeURIComponent(slug)}`)
+                  }
                 />
               ))
             )}

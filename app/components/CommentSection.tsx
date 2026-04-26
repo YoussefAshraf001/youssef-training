@@ -5,6 +5,7 @@ import { useAuthStore } from "../store/AuthStore";
 function CommentSection({ article, onCommentPosted }: any) {
   const [comment, setComment] = useState("");
   const token = useAuthStore((state) => state.token);
+  const encodedSlug = encodeURIComponent(article.slug);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -17,7 +18,7 @@ function CommentSection({ article, onCommentPosted }: any) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${article.slug}/comments`,
+        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodedSlug}/comments`,
         {
           method: "POST",
           headers: {
@@ -25,7 +26,7 @@ function CommentSection({ article, onCommentPosted }: any) {
             Authorization: `Token ${token}`,
           },
           body: JSON.stringify({
-            comment: { body: comment, article: article._id },
+            comment: { body: comment },
           }),
         },
       );
@@ -69,7 +70,7 @@ function CommentSection({ article, onCommentPosted }: any) {
           onChange={handleChange}
           className="border border-zinc-300 rounded-t-xl w-156 min-h-13 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         />
-        <div className="flex justify-between py-2 px-4 bg-zinc-200">
+        <div className="flex justify-between py-2 px-4 bg-zinc-200 rounded-b-xl">
           <img
             src={article.author.image || ""}
             alt={article.author.username}

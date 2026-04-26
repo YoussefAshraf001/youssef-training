@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 //Custom Imports
 import logo from "./assets/conduit-logo.svg";
@@ -16,6 +17,7 @@ import ArticleCard from "./components/ArticleCard";
 import toast from "react-hot-toast";
 
 export default function Home() {
+  const router = useRouter();
   // ZUSTAND STORED USER DATA
   const { data: currentUser } = useUser();
   const token = useAuthStore((state) => state.token);
@@ -31,7 +33,6 @@ export default function Home() {
   const [hoveredArticle, setHoveredArticle] = useState<string | null>(null);
   const [deleteSlug, setDeleteSlug] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [editBlocked, setEditBlocked] = useState(false);
 
   // TAG FILTER STATE
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -276,7 +277,7 @@ export default function Home() {
           {/* Articles */}
           {!loading && (
             <motion.div
-              className="flex flex-col gap-6 h-141"
+              className="flex flex-col gap-6 h-screen-70 overflow-y-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -308,13 +309,15 @@ export default function Home() {
                   onLike={handleArticleLike}
                   onFollow={handleFollow}
                   onDelete={(slug) => setDeleteSlug(slug)}
-                  onEditBlocked={() => setEditBlocked(true)}
+                  onEdit={(slug) =>
+                    router.push(`/editor?slug=${encodeURIComponent(slug)}`)
+                  }
                 />
               ))}
             </motion.div>
           )}
 
-          <div className="flex justify-center gap-2 pt-15 pb-4">
+          <div className="flex justify-center gap-2 py-8">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
@@ -351,17 +354,6 @@ export default function Home() {
             loading={deleting}
             title="Delete article?"
             message="This will permanently remove the article."
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {editBlocked && (
-          <ConfirmModal
-            open={true}
-            onCancel={() => setEditBlocked(false)}
-            onConfirm={() => setEditBlocked(false)}
-            title="Feature unavailable"
-            message="This feature is currently disabled due to API limitations."
           />
         )}
       </AnimatePresence>

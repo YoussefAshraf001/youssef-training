@@ -1,23 +1,35 @@
 "use client";
 
+// Official imports
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { Article } from "../../types/Articles";
+import { useParams, useRouter } from "next/navigation";
 import { IoMdAdd } from "react-icons/io";
-import { FaHeart } from "react-icons/fa";
+import { FaHeart, FaRegEdit } from "react-icons/fa";
+import { MdDeleteOutline, MdEdit } from "react-icons/md";
 import ReactMarkdown from "react-markdown";
-import { useUser } from "../../hooks/useUser";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Custom imports
+import { Article } from "../../types/Articles";
 import CommentSection from "@/app/components/CommentSection";
+import { useUser } from "../../hooks/useUser";
+import { useAuthStore } from "../../store/AuthStore";
 import CommentList from "@/app/components/CommentList";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 function Page() {
   const params = useParams();
-  const slug = params?.slug as string;
+  const router = useRouter();
+  const slug = decodeURIComponent(params?.slug as string);
   const [article, setArticle] = useState<Article | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [commentRefresh, setCommentRefresh] = useState(0);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { data: user } = useUser();
+  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     if (!slug) return;
@@ -25,11 +37,12 @@ function Page() {
     const handleDataFetch = async () => {
       try {
         setLoading(true);
-        const url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${slug}`;
+        const url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}`;
         const res = await fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            ...(token ? { Authorization: `Token ${token}` } : {}),
           },
         });
 
@@ -53,16 +66,106 @@ function Page() {
     };
 
     handleDataFetch();
-  }, [slug]);
+  }, [slug, token]);
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  const handleFavoriteArticle = async () => {
+    if (!article) return;
+
+    if (!token) {
+      toast("You must be logged in to like articles.", { icon: "⚠️" });
+      return;
+    }
+
+    try {
+      const method = article.favorited ? "DELETE" : "POST";
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}/favorite`,
+        {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Failed to update favorite status");
+      }
+
+      setArticle(data.article);
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+      toast.error("Could not update favorite status");
+    }
+  };
+
+  const handleDeleteArticle = async () => {
+    if (!token) {
+      toast.error("You must be signed in to delete articles.");
+      return;
+    }
+
+    try {
+      setDeleting(true);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to delete article");
+      }
+
+      setDeleteOpen(false);
+      toast.success("Article deleted");
+      router.push("/");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Could not delete article");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (loading)
+    return (
+      <>
+        <motion.div
+          className="flex items-center justify-center p-6 h-full animate-pulse text-zinc-600"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="h-7 w-7 rounded-full border-t-2 animate-spin" />
+        </motion.div>
+      </>
+    );
   if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
   if (!article) return <div className="p-6">Article not found</div>;
 
+  const isOwnArticle = user?.username === article.author.username;
+
   return (
     <>
-      <div className="mt-6 w-full max-w-2xl mx-auto px-6">
-        <h2 className="text-[50px] font-semibold mb-4">{article?.title}</h2>
+      <motion.div
+        className="mt-6 w-full max-w-2xl mx-auto px-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-[40px] font-semibold mb-4">{article?.title}</h2>
         <div className="flex items-center gap-4 justify-between">
           <div className="flex items-center gap-2">
             <img
@@ -81,12 +184,42 @@ function Page() {
               </p>
             </div>
             <div className="flex gap-2 pl-5">
-              <button className="h-6 w-31 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-300 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
-                <IoMdAdd /> Follow {article.author.username}
-              </button>
-              <button className="h-6 w-35 text-sm text-green-600 hover:text-white flex justify-center items-center gap-1 border border-green-400 hover:bg-green-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
-                <FaHeart /> Favorite Article ({article.favoritesCount})
-              </button>
+              {isOwnArticle ? (
+                <>
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/editor?slug=${encodeURIComponent(article.slug)}`,
+                      )
+                    }
+                    className="h-6 w-25 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                  >
+                    <MdEdit /> Edit Article
+                  </button>
+                  <button
+                    onClick={() => setDeleteOpen(true)}
+                    className="h-6 w-31 text-sm text-red-700 opacity-60 hover:opacity-100 hover:text-white flex justify-center items-center gap-1 border border-red-300 hover:bg-red-800 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                  >
+                    <MdDeleteOutline /> Delete Article
+                  </button>
+                </>
+              ) : (
+                <button className="h-6 w-31 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-300 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
+                  <IoMdAdd /> Follow {article.author.username}
+                </button>
+              )}
+              {!isOwnArticle && (
+                <button
+                  onClick={handleFavoriteArticle}
+                  className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${
+                    article.favorited
+                      ? "bg-green-500 text-white border-green-500"
+                      : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+                  }`}
+                >
+                  <FaHeart /> Favorite Article ({article.favoritesCount})
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -134,12 +267,42 @@ function Page() {
             </p>
           </div>
           <div className="flex gap-2 pl-5">
-            <button className="h-6 w-31 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-300 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
-              <IoMdAdd /> Follow {article.author.username}
-            </button>
-            <button className="h-6 w-35 text-sm text-green-600 hover:text-white flex justify-center items-center gap-1 border border-green-400 hover:bg-green-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
-              <FaHeart /> Favorite Article ({article.favoritesCount})
-            </button>
+            {isOwnArticle ? (
+              <>
+                <button
+                  onClick={() =>
+                    router.push(
+                      `/editor?slug=${encodeURIComponent(article.slug)}`,
+                    )
+                  }
+                  className="h-6 w-25 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                >
+                  <FaRegEdit /> Edit Article
+                </button>
+                <button
+                  onClick={() => setDeleteOpen(true)}
+                  className="h-6 w-31 text-sm text-red-600 hover:text-white flex justify-center items-center gap-1 border border-red-400 hover:bg-red-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                >
+                  <MdDeleteOutline /> Delete Article
+                </button>
+              </>
+            ) : (
+              <button className="h-6 w-31 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-300 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
+                <IoMdAdd /> Follow {article.author.username}
+              </button>
+            )}
+            {!isOwnArticle && (
+              <button
+                onClick={handleFavoriteArticle}
+                className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${
+                  article.favorited
+                    ? "bg-green-500 text-white border-green-500"
+                    : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+                }`}
+              >
+                <FaHeart /> Favorite Article ({article.favoritesCount})
+              </button>
+            )}
           </div>
         </div>
         <CommentSection
@@ -151,7 +314,22 @@ function Page() {
           currentUser={user?.username}
           refreshTrigger={commentRefresh}
         />
-      </div>
+        <AnimatePresence>
+          {deleteOpen && (
+            <ConfirmModal
+              open={deleteOpen}
+              onCancel={() => setDeleteOpen(false)}
+              onConfirm={handleDeleteArticle}
+              loading={deleting}
+              title="Delete article?"
+              message="This will permanently remove the article."
+              confirmText="Delete"
+              loadingText="Deleting..."
+              variant="danger"
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
     </>
   );
 }
