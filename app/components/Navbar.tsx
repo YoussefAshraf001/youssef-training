@@ -56,8 +56,16 @@ export default function Navbar() {
         {/* Nav */}
         <ul
           className={`
-            ${open ? "block" : "hidden"} 
-            absolute left-0 top-16 w-full bg-white border-b p-4 flex flex-col gap-4 text-sm z-40 sm:flex sm:static sm:w-auto sm:flex-row sm:items-center sm:gap-4 sm:p-0 sm:border-none sm:bg-transparent sm:ml-auto
+            absolute left-0 top-16 w-full bg-white border-b p-4 flex flex-col gap-4 text-sm z-40
+            transform transition-all duration-300 ease-in-out
+
+            ${
+              open
+                ? "translate-y-0 opacity-100"
+                : "-translate-y-5 opacity-0 pointer-events-none"
+            }
+
+            sm:flex sm:static sm:w-auto sm:flex-row sm:items-center sm:gap-4 sm:p-0 sm:border-none sm:bg-transparent sm:ml-auto sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
           `}
         >
           <li>
