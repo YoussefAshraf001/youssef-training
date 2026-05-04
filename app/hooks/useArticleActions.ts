@@ -49,7 +49,7 @@ export function useArticleActions(
     }
   };
 
-  const follow = async (author: Author, tab: Tab) => {
+  const follow = async (author: Author, tab?: Tab) => {
     if (!isLoggedIn || !token) return;
 
     const method = author.following ? "DELETE" : "POST";
