@@ -5,9 +5,9 @@ import { Toaster } from "react-hot-toast";
 
 // Custom Imports
 import "./globals.css";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import { AppShell } from "./components/AppShell";
+import Navbar from "./components/layout/Navbar/Navbar";
+import Footer from "./components/layout/Footer";
+import { AppShell } from "./components/layout/AppShell";
 
 const sourceSans = Source_Sans_3({
   subsets: ["latin"],

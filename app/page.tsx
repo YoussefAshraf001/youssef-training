@@ -1,32 +1,37 @@
 "use client";
 
-//Official Imports
+// Official Imports
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import useSWR from "swr";
 
-//Custom Imports
+// Custom Imports
 import logo from "./assets/conduit-logo.svg";
 import { Article } from "./types/Articles";
 import { useAuthStore } from "./store/AuthStore";
 import { useUser } from "./hooks/useUser";
-import ConfirmModal from "./components/ConfirmModal";
-import TagsSidebar from "./components/TagsSidebar";
-import ArticleCard from "./components/ArticleCard";
-import toast from "react-hot-toast";
+import ConfirmModal from "./components/ui/ConfirmModal/ConfirmModal";
+import TagsSidebar from "./components/layout/TagsSidebar";
+import ArticleCard from "./components/articles/ArticleCard/ArticleCard";
+import { fetcher } from "./lib/fetcher";
+import { useArticleActions } from "./hooks/useArticleActions";
+
+type Tab = "Global Feed" | "Your Feed" | "Tag";
 
 export default function Home() {
   const router = useRouter();
+
   // ZUSTAND STORED USER DATA
-  const { data: currentUser } = useUser();
+  const { user: currentUser } = useUser();
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
 
   // MAIN STATES
-  const [tab, setTab] = useState("Global Feed");
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(false);
+
+  const [tab, setTab] = useState<Tab>("Global Feed");
 
   // HOVER STATES (for showing follow/edit/delete buttons)
   const [hoveredAuthor, setHoveredAuthor] = useState<string | null>(null);
@@ -39,50 +44,38 @@ export default function Home() {
 
   // PAGINATION STATES
   const [page, setPage] = useState(1);
-  const [totalArticles, setTotalArticles] = useState(0);
   const limit = 3;
-  const totalPages = Math.ceil(totalArticles / limit);
 
-  const fetchArticles = async () => {
-    setLoading(true);
-    try {
-      const offset = (page - 1) * limit;
+  const getKey = () => {
+    const offset = (page - 1) * limit;
 
-      let url = "";
+    // Prevent fetching "Your Feed" without token
+    if (tab === "Your Feed" && !token) return null;
 
-      if (tab === "Your Feed") {
-        url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles/feed?limit=${limit}&offset=${offset}`;
-      } else if (selectedTag) {
-        url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles?tag=${selectedTag}&limit=${limit}&offset=${offset}`;
-      } else {
-        url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles?limit=${limit}&offset=${offset}`;
-      }
+    let url = "";
 
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setArticles(data.articles || []);
-      setTotalArticles(data.articlesCount || 0);
-    } finally {
-      setLoading(false);
+    if (tab === "Your Feed") {
+      url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles/feed?limit=${limit}&offset=${offset}`;
+    } else if (selectedTag) {
+      url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles?tag=${selectedTag}&limit=${limit}&offset=${offset}`;
+    } else {
+      url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles?limit=${limit}&offset=${offset}`;
     }
+
+    return [url, token];
   };
 
-  useEffect(() => {
-    fetchArticles();
-  }, [tab, page, token, selectedTag]);
+  const { data, error, isLoading, mutate } = useSWR(getKey, fetcher);
+  const { follow } = useArticleActions(token, isLoggedIn, mutate);
+
+  // Derived states
+  const articles = data?.articles ?? [];
+  const totalArticles = data?.articlesCount ?? 0;
+  const totalPages = Math.ceil(totalArticles / limit);
 
   useEffect(() => {
     setPage(1);
   }, [tab, selectedTag]);
-
-  // useEffect(() => {
-  //   window.scrollTo({ top: 0, behavior: "smooth" });
-  // }, [page]);
 
   const handleArticleLike = async (article: Article) => {
     if (!isLoggedIn) {
@@ -105,50 +98,17 @@ export default function Home() {
 
       const data = await res.json();
 
-      setArticles((prev) =>
-        prev.map((a) => (a.slug === article.slug ? data.article : a)),
+      mutate(
+        (prev: any) => ({
+          ...prev,
+          articles: prev.articles.map((a: any) =>
+            a.slug === article.slug ? data.article : a,
+          ),
+        }),
+        false,
       );
     } catch (err) {
       console.error("Error toggling like:", err);
-    }
-  };
-
-  const handleFollow = async (author: any) => {
-    if (!isLoggedIn) {
-      toast("You must be logged in to follow users.", { icon: "⚠️" });
-      return;
-    }
-
-    try {
-      const method = author.following ? "DELETE" : "POST";
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ROOT}/profiles/${author.username}/follow`,
-        {
-          method,
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-
-      setArticles((prev) =>
-        prev.map((article) =>
-          article.author.username === author.username
-            ? { ...article, author: data.profile }
-            : article,
-        ),
-      );
-
-      if (tab === "Your Feed" && author.following) {
-        setArticles((prev) =>
-          prev.filter((a) => a.author.username !== author.username),
-        );
-      }
-    } catch (err) {
-      console.error("Error toggling follow:", err);
     }
   };
 
@@ -168,7 +128,13 @@ export default function Home() {
         },
       );
 
-      setArticles((prev) => prev.filter((a) => a.slug !== deleteSlug));
+      mutate(
+        (prev: any) => ({
+          ...prev,
+          articles: prev.articles.filter((a: any) => a.slug !== deleteSlug),
+        }),
+        false,
+      );
 
       setDeleteSlug(null);
     } catch (err) {
@@ -231,7 +197,7 @@ export default function Home() {
             {isLoggedIn && (
               <button
                 onClick={() => setTab("Your Feed")}
-                className={`pb-2 ${
+                className={`pb-2 cursor-pointer ${
                   tab === "Your Feed"
                     ? "text-green-500 border-b-2 border-green-500"
                     : "text-zinc-400"
@@ -246,7 +212,7 @@ export default function Home() {
                 setTab("Global Feed");
                 setSelectedTag(null);
               }}
-              className={`pb-2 ${
+              className={`pb-2 cursor-pointer ${
                 tab === "Global Feed"
                   ? "text-green-500 border-b-2 border-green-500"
                   : "text-zinc-400"
@@ -255,14 +221,19 @@ export default function Home() {
               Global Feed
             </button>
             {selectedTag && (
-              <button className="pb-2 text-green-500 border-b-2 border-green-500">
+              <button
+                onClick={() => {
+                  setTab("Tag");
+                }}
+                className="pb-2 cursor-pointer text-green-500 border-b-2 border-green-500"
+              >
                 # {selectedTag}
               </button>
             )}
           </div>
 
           {/* Loading */}
-          {loading && (
+          {isLoading && (
             <motion.div
               className="flex justify-center p-6 h-141 animate-pulse text-zinc-600"
               initial={{ opacity: 0 }}
@@ -274,8 +245,14 @@ export default function Home() {
             </motion.div>
           )}
 
+          {error && (
+            <div className="text-red-500 text-sm text-center py-6">
+              Failed to load articles. Try refreshing.
+            </div>
+          )}
+
           {/* Articles */}
-          {!loading && (
+          {!isLoading && !error && (
             <motion.div
               className="flex flex-col gap-6 h-screen-70 overflow-y-auto"
               initial={{ opacity: 0 }}
@@ -297,7 +274,7 @@ export default function Home() {
                 </p>
               )}
 
-              {articles.map((article) => (
+              {articles.map((article: any) => (
                 <ArticleCard
                   key={article.slug}
                   article={article}
@@ -307,7 +284,7 @@ export default function Home() {
                   setHoveredArticle={setHoveredArticle}
                   setHoveredAuthor={setHoveredAuthor}
                   onLike={handleArticleLike}
-                  onFollow={handleFollow}
+                  onFollow={(author) => follow(author, tab)}
                   onDelete={(slug) => setDeleteSlug(slug)}
                   onEdit={(slug) =>
                     router.push(`/editor?slug=${encodeURIComponent(slug)}`)

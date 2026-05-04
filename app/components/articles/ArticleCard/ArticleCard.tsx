@@ -1,9 +1,12 @@
+// Official Imports
 import Link from "next/link";
-import { Article } from "../types/Articles";
-import defaultavatar from "../assets/default-avatar.svg";
+import { motion } from "framer-motion";
 import { FaHeart, FaRegEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
-import { motion } from "framer-motion";
+
+// Custom Imports
+import defaultavatar from "../../../assets/default-avatar.svg";
+import { Article } from "../../../types/Articles";
 
 type Props = {
   article: Article;
@@ -69,7 +72,7 @@ export default function ArticleCard({
           </div>
         </div>
 
-        {/* <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           {article.author.username !== currentUser?.username && (
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -134,7 +137,7 @@ export default function ArticleCard({
           >
             <FaHeart /> {article.favoritesCount}
           </div>
-        </div> */}
+        </div>
       </div>
 
       <Link href={`/article/${article.slug}`} className="block">

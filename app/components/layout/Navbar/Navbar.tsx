@@ -9,14 +9,14 @@ import { CiSettings } from "react-icons/ci";
 import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 
 // Custom Imports
-import logo from "../assets/conduit-logo.svg";
-import defaultavatar from "../assets/default-avatar.svg";
-import { useUser } from "../hooks/useUser";
-import { useAuthStore } from "../store/AuthStore";
+import logo from "../../../assets/conduit-logo.svg";
+import defaultavatar from "../../../assets/default-avatar.svg";
+import { useUser } from "../../../hooks/useUser";
+import { useAuthStore } from "../../../store/AuthStore";
 import { useState } from "react";
 
 export default function Navbar() {
-  const { data: user } = useUser();
+  const { user } = useUser();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 

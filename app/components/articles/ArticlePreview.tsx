@@ -1,8 +1,11 @@
-import { Article } from "../types/Articles";
+import { Article } from "../../types/Articles";
 
-import defaultavatar from "../assets/default-avatar.svg";
+// Official Imports
 import Link from "next/link";
 import { FaHeart } from "react-icons/fa";
+
+// Custom Imports
+import defaultavatar from "../assets/default-avatar.svg";
 
 export default function ArticlePreview({ article }: { article: Article }) {
   return (

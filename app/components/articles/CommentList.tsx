@@ -1,11 +1,17 @@
+"use client";
+
+// Official Imports
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
-import { Comment } from "../types/Articles";
-import { useAuthStore } from "../store/AuthStore";
-import ConfirmModal from "./ConfirmModal";
+import { useState } from "react";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import useSWR from "swr";
+
+// Custom Imports
+import { Comment } from "../../types/Articles";
+import { useAuthStore } from "../../store/AuthStore";
+import ConfirmModal from "../ui/ConfirmModal/ConfirmModal";
+import { fetcher } from "../../lib/fetcher";
 
 interface CommentListProps {
   slug: string;
@@ -13,54 +19,41 @@ interface CommentListProps {
   refreshTrigger?: number;
 }
 
-function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type CommentsResponse = {
+  comments: Comment[];
+};
+
+function CommentList({ slug, currentUser }: CommentListProps) {
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [editBlocked, setEditBlocked] = useState(false);
+
   const token = useAuthStore((state) => state.token);
+  const isLoggedIn = !!token;
   const encodedSlug = encodeURIComponent(slug);
 
-  useEffect(() => {
-    fetchComments();
-  }, [encodedSlug, refreshTrigger, token]);
+  const getKey = () => {
+    if (!slug) return null;
 
-  const fetchComments = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodedSlug}/comments`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Token ${token}` } : {}),
-          },
-        },
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch comments");
-      }
-
-      const data = await res.json();
-      setComments(data.comments || []);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+    return [
+      `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodedSlug}/comments`,
+      token,
+    ];
   };
+
+  const { data, error, isLoading, mutate } = useSWR<CommentsResponse>(
+    getKey,
+    fetcher,
+  );
+
+  const comments = data?.comments ?? [];
 
   const deleteComment = async () => {
     if (!deleteCommentId) return;
 
     try {
       setDeleting(true);
-      const res = await fetch(
+
+      await fetch(
         `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodedSlug}/comments/${deleteCommentId}`,
         {
           method: "DELETE",
@@ -71,30 +64,57 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
         },
       );
 
-      if (!res.ok) {
-        throw new Error("Failed to delete comment");
-      }
+      await mutate((prev: any) => {
+        if (!prev) return prev;
 
-      // Remove the deleted comment from the state
-      setComments(comments.filter((comment) => comment.id !== deleteCommentId));
+        return {
+          ...prev,
+          comments: prev.comments.filter((c: any) => c.id !== deleteCommentId),
+        };
+      }, false);
+
       setDeleteCommentId(null);
     } catch (err) {
       console.error("Error deleting comment:", err);
-      setError("Failed to delete comment");
     } finally {
       setDeleting(false);
     }
   };
 
-  if (loading) return <div className="p-4">Loading comments...</div>;
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  const showEmpty = comments.length === 0;
+
+  if (isLoading) {
+    return <div className="p-4">Loading comments...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-500">
+        Error: {error.message || "Failed to load comments"}
+      </div>
+    );
+  }
 
   return (
     <div className="my-8">
       <h3 className="text-xl font-semibold mb-4">
         Comments ({comments.length})
       </h3>
-      {comments.length === 0 ? (
+
+      {!isLoggedIn && (
+        <p className="mb-6 text-lg text-zinc-500 gap-1 flex items-center">
+          <a href="/signin" className="text-green-600 hover:text-green-700">
+            Sign In
+          </a>
+          or
+          <a href="/register" className="text-green-600 hover:text-green-700">
+            Sign Up
+          </a>
+          to add comments on this article.
+        </p>
+      )}
+
+      {showEmpty ? (
         <p className="text-zinc-500">No comments yet.</p>
       ) : (
         <div className="space-y-4">
@@ -106,6 +126,7 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
               <p className="text-zinc-900 text-base leading-7">
                 {comment.body}
               </p>
+
               <div className="mt-5 w-full rounded-full bg-zinc-100 px-6 py-3 text-zinc-500 text-sm">
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -114,12 +135,14 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
                       alt={comment.author.username}
                       className="h-8 w-8 rounded-full"
                     />
+
                     <Link
                       href={`/profile/${comment.author.username}`}
                       className="text-green-600 hover:text-green-700 font-medium"
                     >
                       {comment.author.username}
                     </Link>
+
                     <span className="whitespace-nowrap">
                       {new Date(comment.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -128,15 +151,14 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
                       })}
                     </span>
                   </div>
+
                   {currentUser === comment.author.username && (
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => setDeleteCommentId(comment.id)}
-                        className="text-zinc-500 hover:text-zinc-700 text-sm cursor-pointer"
-                      >
-                        <RiDeleteBin6Line />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => setDeleteCommentId(comment.id)}
+                      className="text-zinc-500 hover:text-zinc-700 text-sm cursor-pointer"
+                    >
+                      <RiDeleteBin6Line />
+                    </button>
                   )}
                 </div>
               </div>
@@ -144,6 +166,8 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
           ))}
         </div>
       )}
+
+      {/* Delete Modal */}
       <AnimatePresence>
         {deleteCommentId && (
           <ConfirmModal
@@ -156,18 +180,6 @@ function CommentList({ slug, currentUser, refreshTrigger }: CommentListProps) {
             confirmText="Delete"
             loadingText="Deleting..."
             variant="danger"
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {editBlocked && (
-          <ConfirmModal
-            open={true}
-            onCancel={() => setEditBlocked(false)}
-            title="Feature unavailable"
-            message="Editing comments is currently disabled due to API limitations."
-            cancelText="Close"
-            variant="info"
           />
         )}
       </AnimatePresence>

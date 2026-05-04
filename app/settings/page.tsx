@@ -1,15 +1,18 @@
 "use client";
 
+// Official Imports
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useUser } from "../hooks/useUser";
-import { useAuthStore } from "../store/AuthStore";
 import { motion } from "framer-motion";
 
+// Custom Imports
+import { useUser } from "../hooks/useUser";
+import { useAuthStore } from "../store/AuthStore";
+
 export default function Settings() {
-  const { data: user } = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const setToken = useAuthStore((s) => s.setToken);
   const logout = useAuthStore((s) => s.logout);

@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 
 // Custom Imports
 import { useAuthStore } from "../store/AuthStore";
+import FormInput from "../components/ui/inputs/FormInput";
 
 export default function Register() {
   const router = useRouter();
@@ -55,13 +56,6 @@ export default function Register() {
       const data = await res.json();
 
       if (!res.ok) {
-        // console.log("[auth flow] register failed:", {
-        //   status: res.status,
-        //   response: data,
-        //   email: user.email,
-        //   username: user.username,
-        // });
-
         toast.error(getApiErrorMessage(data, "Could not create account"), {
           id: toastId,
         });
@@ -102,40 +96,39 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-2">
             <div className="flex flex-col gap-3">
-              <input
+              <FormInput
                 id="username"
-                type="text"
-                placeholder="Username"
-                autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
-                className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Username"
+                autoComplete="username"
+                className="h-13.75 w-[320px] lg:w-135"
               />
-              <input
+
+              <FormInput
                 id="email"
                 type="email"
-                placeholder="Email"
-                autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Email"
+                autoComplete="email"
+                className="h-13.75 w-[320px] lg:w-135"
               />
+
               <div className="relative">
-                <input
+                <FormInput
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  autoComplete="new-password"
                   value={form.password}
                   onChange={handleChange}
-                  className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Password"
+                  autoComplete="new-password"
+                  className="h-13.75 w-[320px] lg:w-135 pr-10"
                 />
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                  }}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -193,12 +186,4 @@ async function verifyLoginCredentials(email: string, password: string) {
   });
 
   const data = await res.json();
-
-  // console.log("[auth flow] immediate login check after register:", {
-  //   ok: res.ok,
-  //   status: res.status,
-  //   email,
-  //   passwordLength: password.length,
-  //   response: res.ok ? "token returned" : data,
-  // });
 }

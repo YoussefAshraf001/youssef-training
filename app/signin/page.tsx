@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 
 // Custom Imports
 import { useAuthStore } from "../store/AuthStore";
+import FormInput from "../components/ui/inputs/FormInput";
 
 export default function Signin() {
   const router = useRouter();
@@ -118,32 +119,30 @@ export default function Signin() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-2">
             <div className="flex flex-col gap-3">
-              <input
+              <FormInput
                 id="email"
                 type="email"
-                placeholder="Email"
-                autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
-                className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Email"
+                autoComplete="email"
+                className="h-13.75 w-[320px] lg:w-135"
               />
+
               <div className="relative">
-                <input
+                <FormInput
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  autoComplete="current-password"
                   value={form.password}
                   onChange={handleChange}
-                  className="h-13.75 w-[320px] lg:w-135 border border-zinc-200 rounded-lg px-4 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  className="h-13.75 w-[320px] lg:w-135 pr-10"
                 />
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                    console.log(showPassword);
-                  }}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}

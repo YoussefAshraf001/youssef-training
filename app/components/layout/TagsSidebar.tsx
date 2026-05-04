@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// Official Imports
+import useSWR from "swr";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -15,35 +16,23 @@ export default function TagsSidebar({
   onTagClick: (tag: string) => void;
   selectedTag: string | null;
 }) {
-  const [tags, setTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data, error, isLoading } = useSWR<TagsResponse>(
+    `${apiRoot}/tags`,
+    (url: string) => fetch(url).then((res) => res.json()),
+  );
 
-  useEffect(() => {
-    const fetchTags = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${apiRoot}/tags`);
-        const data: TagsResponse = await res.json();
-
-        setTags(data.tags || []);
-      } catch (err) {
-        console.error("Error fetching tags:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTags();
-  }, []);
+  const tags = data?.tags ?? [];
 
   return (
     <div className="flex mx-auto w-full lg:w-50">
       <div className="p-4 rounded">
         <h3 className="text-sm font-semibold mb-3">Popular Tags</h3>
 
-        {loading ? (
-          <p className="text-xs text-zinc-400">Loading...</p>
-        ) : (
+        {isLoading && <p className="text-xs text-zinc-400">Loading...</p>}
+
+        {error && <p className="text-xs text-red-500">Failed to load tags</p>}
+
+        {!isLoading && !error && (
           <div className="flex flex-wrap gap-2 text-xs">
             {tags.map((tag) => (
               <span

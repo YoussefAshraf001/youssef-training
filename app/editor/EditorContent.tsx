@@ -6,10 +6,19 @@ import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tag, WithContext as ReactTags } from "react-tag-input";
 import { motion } from "framer-motion";
+import useSWR from "swr";
 
 // Custom Imports
 import { useAuthStore } from "../store/AuthStore";
 import { Form } from "../types/Form";
+import { fetcher } from "../lib/fetcher";
+import { Article } from "../types/Articles";
+import FormInput from "../components/ui/inputs/FormInput";
+import FormTextarea from "../components/ui/inputs/FormTextarea";
+
+export type ArticleResponse = {
+  article: Article;
+};
 
 function readStoredToken() {
   if (typeof window === "undefined") {
@@ -35,14 +44,12 @@ function readStoredToken() {
 
 export default function EditorContent() {
   const router = useRouter();
-  const titleInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("slug");
 
   const token = useAuthStore((state) => state.token);
 
   const [loading, setLoading] = useState(false);
-  const [loadingArticle, setLoadingArticle] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
   const [form, setForm] = useState<Form>({
     title: "",
@@ -146,60 +153,41 @@ export default function EditorContent() {
     }
   };
 
+  const shouldFetch = isEditing && (token || readStoredToken());
+
+  const {
+    data,
+    error,
+    isLoading: loadingArticle,
+  } = useSWR<ArticleResponse>(
+    shouldFetch
+      ? [
+          `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(editSlug!)}`,
+          token ?? readStoredToken(),
+        ]
+      : null,
+    fetcher,
+  );
+
   useEffect(() => {
-    if (!editSlug) return;
+    if (!data?.article) return;
 
-    const authToken = token ?? readStoredToken();
+    setForm({
+      title: data.article.title,
+      description: data.article.description,
+      body: data.article.body,
+      tags: data.article.tagList,
+    });
 
-    if (!authToken) {
-      toast.error("You must be signed in to edit articles.");
-      router.push("/signin");
-      return;
-    }
+    setTags(
+      data.article.tagList.map((tag) => ({
+        id: tag,
+        text: tag,
+        className: "",
+      })),
+    );
+  }, [data]);
 
-    const loadArticle = async () => {
-      try {
-        setLoadingArticle(true);
-
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(editSlug)}`,
-          {
-            headers: {
-              Authorization: `Token ${authToken}`,
-            },
-          },
-        );
-
-        const data = await res.json();
-
-        if (!res.ok || !data.article) {
-          throw new Error("Failed to load article");
-        }
-
-        setForm({
-          title: data.article.title,
-          description: data.article.description,
-          body: data.article.body,
-          tags: data.article.tagList,
-        });
-
-        setTags(
-          data.article.tagList.map((tag: any) => ({
-            id: tag,
-            text: tag,
-          })),
-        );
-      } catch (err) {
-        console.error(err);
-        toast.error("Could not load article for editing");
-        router.push("/");
-      } finally {
-        setLoadingArticle(false);
-      }
-    };
-
-    loadArticle();
-  }, [editSlug, token]);
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <motion.div
@@ -218,31 +206,27 @@ export default function EditorContent() {
             onSubmit={handleSubmit}
             className="flex flex-col gap-4 w-full max-w-2xl px-4"
           >
-            <input
-              ref={titleInputRef}
+            <FormInput
               name="title"
-              placeholder="Article Title"
-              type="text"
               value={form.title}
               onChange={handleChange}
-              className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Article Title"
+              className="h-13.75 pr-10"
             />
 
-            <input
+            <FormInput
               name="description"
-              placeholder="What's this article about?"
               value={form.description}
               onChange={handleChange}
-              className="border border-zinc-300 rounded-xl w-full h-12 pl-6 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Article Description"
+              className="h-13.75 pr-10"
             />
 
-            <textarea
+            <FormTextarea
               name="body"
-              placeholder="Write your article (in markdown)"
-              rows={5}
               value={form.body}
               onChange={handleChange}
-              className="border border-zinc-300 rounded-xl w-full min-h-12 pl-6 pt-3 text-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Write your article (in markdown)"
             />
 
             <ReactTags

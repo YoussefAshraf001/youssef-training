@@ -1,158 +1,91 @@
 "use client";
 
 // Official imports
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { IoMdAdd } from "react-icons/io";
 import { FaHeart, FaRegEdit } from "react-icons/fa";
-import { MdDeleteOutline, MdEdit } from "react-icons/md";
+import { MdDeleteOutline, MdEdit, MdError } from "react-icons/md";
 import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import useSWR from "swr";
 
 // Custom imports
-import { Article } from "../../types/Articles";
-import CommentSection from "@/app/components/CommentSection";
 import { useUser } from "../../hooks/useUser";
 import { useAuthStore } from "../../store/AuthStore";
-import CommentList from "@/app/components/CommentList";
-import ConfirmModal from "@/app/components/ConfirmModal";
+import CommentSection from "../../components/comments/CommentSection";
+import CommentList from "../../components/articles/CommentList";
+import ConfirmModal from "../../components/ui/ConfirmModal/ConfirmModal";
+import defaultavatar from "../../assets/default-avatar.svg";
+import { fetcher } from "@/app/lib/fetcher";
+import { useArticleActions } from "@/app/hooks/useArticleActions";
 
 function Page() {
+  const { user, isLoading: loading } = useUser();
+  const token = useAuthStore((state) => state.token);
+
   const params = useParams();
   const router = useRouter();
   const slug = decodeURIComponent(params?.slug as string);
-  const [article, setArticle] = useState<Article | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [commentRefresh, setCommentRefresh] = useState(0);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { data: user } = useUser();
-  const token = useAuthStore((state) => state.token);
 
-  useEffect(() => {
-    if (!slug) return;
+  const url = slug
+    ? `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}`
+    : null;
 
-    const handleDataFetch = async () => {
-      try {
-        setLoading(true);
-        const url = `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}`;
-        const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Token ${token}` } : {}),
-          },
-        });
+  const { data, error, mutate } = useSWR(slug ? [url, token] : null, fetcher);
+  const { favorite, follow, deleteArticle } = useArticleActions(
+    token,
+    !!token,
+    mutate,
+  );
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Failed response:", res.status, res.statusText);
-          console.error("Error body:", errorText);
-          throw new Error("Failed to fetch article");
-        }
-
-        const data = await res.json();
-        const { article: articleData } = data;
-        setArticle(articleData);
-        // console.log(articleData);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    handleDataFetch();
-  }, [slug, token]);
-
-  const handleFavoriteArticle = async () => {
-    if (!article) return;
-
-    if (!token) {
-      toast("You must be logged in to like articles.", { icon: "⚠️" });
-      return;
-    }
-
-    try {
-      const method = article.favorited ? "DELETE" : "POST";
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}/favorite`,
-        {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Failed to update favorite status");
-      }
-
-      setArticle(data.article);
-    } catch (err) {
-      console.error("Error toggling favorite:", err);
-      toast.error("Could not update favorite status");
-    }
-  };
+  const article = data?.article;
 
   const handleDeleteArticle = async () => {
-    if (!token) {
-      toast.error("You must be signed in to delete articles.");
-      return;
-    }
+    setDeleting(true);
+    const success = await deleteArticle(slug);
 
-    try {
-      setDeleting(true);
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_ROOT}/articles/${encodeURIComponent(slug)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        },
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to delete article");
-      }
-
-      setDeleteOpen(false);
+    if (success) {
       toast.success("Article deleted");
       router.push("/");
-    } catch (err) {
-      console.error("Delete failed:", err);
-      toast.error("Could not delete article");
-    } finally {
+      setDeleting(false);
+    } else {
+      toast.error("Delete failed");
       setDeleting(false);
     }
   };
 
+  if (error)
+    return (
+      <div className="p-6 text-red-500 text-xl flex items-center gap-2 justify-center">
+        <MdError /> Error:{" "}
+        {error instanceof Error ? error.message : "Something went wrong"}
+      </div>
+    );
+
   if (loading)
     return (
-      <>
-        <motion.div
-          className="flex items-center justify-center p-6 h-full animate-pulse text-zinc-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="h-7 w-7 rounded-full border-t-2 animate-spin" />
-        </motion.div>
-      </>
+      <motion.div
+        className="flex items-center justify-center p-6 h-full animate-pulse text-zinc-600"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <div className="h-7 w-7 rounded-full border-t-2 animate-spin" />
+      </motion.div>
     );
-  if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
-  if (!article) return <div className="p-6">Article not found</div>;
+
+  if (!article)
+    return (
+      <div className="flex items-center justify-center p-6 text-zinc-600">
+        Article not found
+      </div>
+    );
 
   const isOwnArticle = user?.username === article.author.username;
 
@@ -169,7 +102,7 @@ function Page() {
         <div className="flex items-center gap-4 justify-between">
           <div className="flex items-center gap-2">
             <img
-              src={article.author.image || ""}
+              src={article.author.image || defaultavatar.src}
               alt={article.author.username}
               className="h-7 w-7 rounded-full"
             />
@@ -204,13 +137,23 @@ function Page() {
                   </button>
                 </>
               ) : (
-                <button className="h-6 w-31 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-300 rounded-md transition-all ease-in-out duration-200 cursor-pointer">
-                  <IoMdAdd /> Follow {article.author.username}
+                <button
+                  onClick={() => follow(article.author)}
+                  className={`h-6 px-3 text-sm flex items-center gap-1 border rounded-md transition ${
+                    article.author.following
+                      ? "text-red-500 border-red-400 hover:bg-red-500 hover:text-white"
+                      : "text-zinc-300 border-zinc-400 hover:bg-zinc-300"
+                  }`}
+                >
+                  <IoMdAdd />
+                  {article.author.following
+                    ? `Unfollow ${article.author.username}`
+                    : `Follow ${article.author.username}`}
                 </button>
               )}
               {!isOwnArticle && (
                 <button
-                  onClick={handleFavoriteArticle}
+                  onClick={() => favorite(article, article.slug)}
                   className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${
                     article.favorited
                       ? "bg-green-500 text-white border-green-500"
@@ -238,7 +181,7 @@ function Page() {
           </ReactMarkdown>
         </div>
         <div className="my-6 flex flex-wrap gap-2">
-          {article.tagList.map((tag, index) => (
+          {article.tagList.map((tag: any, index: any) => (
             <span
               key={index}
               className="px-3 py-1 text-zinc-400 text-sm rounded-full border border-zinc-200"
@@ -250,7 +193,7 @@ function Page() {
         <hr />
         <div className="flex justify-center items-center gap-2 py-4">
           <img
-            src={article.author.image || ""}
+            src={article.author.image || defaultavatar.src}
             alt={article.author.username}
             className="h-7 w-7 rounded-full"
           />
@@ -293,7 +236,7 @@ function Page() {
             )}
             {!isOwnArticle && (
               <button
-                onClick={handleFavoriteArticle}
+                onClick={() => favorite(article, article.slug)}
                 className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${
                   article.favorited
                     ? "bg-green-500 text-white border-green-500"

@@ -8,6 +8,8 @@ import useSWR from "swr";
 import { CiSettings } from "react-icons/ci";
 import { IoMdAdd } from "react-icons/io";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 // Custom Imports
 import { useUser } from "@/app/hooks/useUser";
@@ -15,11 +17,9 @@ import { useAuthStore } from "@/app/store/AuthStore";
 import defaultavatar from "../../assets/default-avatar.svg";
 import { Profile } from "../../types/Profile";
 import { Article, ArticlesResponse } from "../../types/Articles";
-import TabButton from "@/app/components/TabButton";
-import { AnimatePresence, motion } from "framer-motion";
-import ArticleCard from "@/app/components/ArticleCard";
-import ConfirmModal from "@/app/components/ConfirmModal";
-import toast from "react-hot-toast";
+import TabButton from "@/app/components/ui/TabButton";
+import ArticleCard from "@/app/components/articles/ArticleCard/ArticleCard";
+import ConfirmModal from "@/app/components/ui/ConfirmModal/ConfirmModal";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const routeUsername = decodeURIComponent(params.username);
   const [activeTab, setActiveTab] = useState<"mine" | "favorited">("mine");
   const token = useAuthStore((s) => s.token);
-  const { data: currentUser, isLoading: currentUserLoading } = useUser();
+  const { user: currentUser, isLoading: currentUserLoading } = useUser();
 
   const [hoveredArticle, setHoveredArticle] = useState<string | null>(null);
   const [hoveredAuthor, setHoveredAuthor] = useState<string | null>(null);
