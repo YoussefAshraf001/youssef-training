@@ -1,11 +1,13 @@
 "use client";
 
 // Official Imports
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import useSWR from "swr";
+import toast from "react-hot-toast";
+import { MdDelete } from "react-icons/md";
 
 // Custom Imports
 import { Comment } from "../../types/Articles";
@@ -74,6 +76,9 @@ function CommentList({ slug, currentUser }: CommentListProps) {
       }, false);
 
       setDeleteCommentId(null);
+      toast("Comment deleted successfully!", {
+        icon: <MdDelete size={22} className="text-red-500 mb-1.75" />,
+      });
     } catch (err) {
       console.error("Error deleting comment:", err);
     } finally {
@@ -82,10 +87,6 @@ function CommentList({ slug, currentUser }: CommentListProps) {
   };
 
   const showEmpty = comments.length === 0;
-
-  if (isLoading) {
-    return <div className="p-4">Loading comments...</div>;
-  }
 
   if (error) {
     return (
@@ -114,7 +115,17 @@ function CommentList({ slug, currentUser }: CommentListProps) {
         </p>
       )}
 
-      {showEmpty ? (
+      {isLoading ? (
+        <motion.div
+          className="flex items-center justify-center p-6 h-full animate-pulse text-zinc-600"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="h-7 w-7 rounded-full border-t-2 animate-spin" />
+        </motion.div>
+      ) : showEmpty ? (
         <p className="text-zinc-500">No comments yet.</p>
       ) : (
         <div className="space-y-4">

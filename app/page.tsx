@@ -44,7 +44,7 @@ export default function Home() {
 
   // PAGINATION STATES
   const [page, setPage] = useState(1);
-  const limit = 3;
+  const limit = 4;
 
   const getKey = () => {
     const offset = (page - 1) * limit;
@@ -191,7 +191,7 @@ export default function Home() {
       {/* CONTENT */}
       <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
         {/* LEFT SIDE (FEED) */}
-        <div className="flex-1">
+        <div className="flex-1 min-h-0">
           {/* Tabs */}
           <div className="flex gap-4 border-b mb-6 text-sm">
             {isLoggedIn && (
@@ -235,7 +235,7 @@ export default function Home() {
           {/* Loading */}
           {isLoading && (
             <motion.div
-              className="flex justify-center p-6 h-141 animate-pulse text-zinc-600"
+              className="flex justify-center items-center h-[70vh]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -254,7 +254,7 @@ export default function Home() {
           {/* Articles */}
           {!isLoading && !error && (
             <motion.div
-              className="flex flex-col gap-6 h-screen-70 overflow-y-auto"
+              className="flex flex-col gap-6 h-[70vh] overflow-y-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -294,7 +294,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          <div className="flex justify-center gap-2 py-8">
+          <div className="flex justify-center gap-2 py-6">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
@@ -309,7 +309,6 @@ export default function Home() {
               </button>
             ))}
           </div>
-          <hr className="text-zinc-200" />
         </div>
 
         {/* RIGHT SIDE (TAGS) */}

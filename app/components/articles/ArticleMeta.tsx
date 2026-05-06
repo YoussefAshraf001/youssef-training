@@ -1,7 +1,9 @@
-// Custom Imports
+// Official Imports
 import { FaHeart } from "react-icons/fa";
-import defaultavatar from "../../assets/default-avatar.svg";
 import { IoMdAdd } from "react-icons/io";
+
+// Custom Imports
+import defaultavatar from "../../assets/default-avatar.svg";
 
 type Props = {
   article: any;
@@ -53,7 +55,7 @@ export default function ArticleMeta({
             <>
               <button
                 onClick={onEdit}
-                className="h-7 w-25 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                className="h-7 w-25 text-sm text-zinc-600 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
               >
                 Edit Article
               </button>
