@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,7 +7,6 @@ import { FaRegEdit } from "react-icons/fa";
 import { CiSettings } from "react-icons/ci";
 import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 
-// Custom Imports
 import logo from "../../../assets/conduit-logo.svg";
 import defaultavatar from "../../../assets/default-avatar.svg";
 import { useUser } from "../../../hooks/useUser";
@@ -20,11 +18,16 @@ export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const isActive = (path: any) => pathname === path;
+  const isActive = (path: string) => pathname === path;
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
   const base = "text-zinc-400 hover:text-zinc-600";
   const active = "text-zinc-800";
+
+  const handleClearStorage = () => {
+    localStorage.clear();
+    window.location.reload(); // optional but usually helpful
+  };
 
   return (
     <div className="w-full py-4 border-b z-40">
@@ -68,6 +71,14 @@ export default function Navbar() {
             sm:flex sm:static sm:w-auto sm:flex-row sm:items-center sm:gap-4 sm:p-0 sm:border-none sm:bg-transparent sm:ml-auto sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
           `}
         >
+          <li>
+            <button
+              onClick={handleClearStorage}
+              className="flex gap-1 items-center text-red-500 hover:text-red-700"
+            >
+              Clear Storage
+            </button>
+          </li>
           <li>
             <Link href="/" className={isActive("/") ? active : base}>
               Home

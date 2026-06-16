@@ -1,9 +1,7 @@
-// Official Imports
 import type { Metadata } from "next";
 import { Source_Sans_3 } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
-// Custom Imports
 import "./globals.css";
 import Navbar from "./components/layout/Navbar/Navbar";
 import Footer from "./components/layout/Footer";
@@ -26,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${sourceSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-screen flex flex-col font-sans">
         <AppShell>
           <Navbar />
           <main className="grow">{children}</main>

@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import { Suspense, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,13 +7,21 @@ import { Tag, WithContext as ReactTags } from "react-tag-input";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
-// Custom Imports
 import { useAuthStore } from "../store/AuthStore";
 import { Form } from "../types/Form";
 import { fetcher } from "../lib/fetcher";
 import { Article } from "../types/Articles";
 import FormInput from "../components/ui/inputs/FormInput";
 import FormTextarea from "../components/ui/inputs/FormTextarea";
+
+type ArticlePayload = {
+  article: {
+    title: string;
+    description: string;
+    body: string;
+    tagList?: string[];
+  };
+};
 
 export type ArticleResponse = {
   article: Article;
@@ -60,7 +67,9 @@ export default function EditorContent() {
 
   const isEditing = !!editSlug;
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
@@ -84,7 +93,7 @@ export default function EditorContent() {
     setTags(newTags);
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -102,7 +111,7 @@ export default function EditorContent() {
     }
 
     try {
-      const payload: any = {
+      const payload: ArticlePayload = {
         article: {
           title: form.title,
           description: form.description,
@@ -135,8 +144,6 @@ export default function EditorContent() {
           : isEditing
             ? "Failed to update article"
             : "Failed to create article";
-
-        console.error("API ERROR:", data);
         toast.error(errorMsg);
         return;
       }
@@ -145,9 +152,10 @@ export default function EditorContent() {
         icon: "✅",
       });
       router.push(`/article/${data.article.slug}`);
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to post comment.";
+      toast.error(`Error submitting comment: ${message}`);
     } finally {
       setLoading(false);
     }

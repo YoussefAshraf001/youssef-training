@@ -1,9 +1,7 @@
 "use client";
 
-// Official Imports
 import { Suspense } from "react";
 
-// Custom Imports
 import EditorContent from "./EditorContent";
 
 export default function Editor() {

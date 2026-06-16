@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
@@ -8,9 +7,8 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 
-// Custom Imports
 import logo from "./assets/conduit-logo.svg";
-import { Article } from "./types/Articles";
+import { Article, ArticlesResponse } from "./types/Articles";
 import { useAuthStore } from "./store/AuthStore";
 import { useUser } from "./hooks/useUser";
 import ConfirmModal from "./components/ui/ConfirmModal/ConfirmModal";
@@ -25,7 +23,8 @@ export default function Home() {
   const router = useRouter();
 
   // ZUSTAND STORED USER DATA
-  const { user: currentUser } = useUser();
+  const { user } = useUser();
+  const currentUsername = user?.username ?? "";
   const token = useAuthStore((state) => state.token);
   const isLoggedIn = !!token;
 
@@ -98,17 +97,20 @@ export default function Home() {
 
       const data = await res.json();
 
-      mutate(
-        (prev: any) => ({
+      mutate((prev: ArticlesResponse | undefined) => {
+        if (!prev) return prev;
+
+        return {
           ...prev,
-          articles: prev.articles.map((a: any) =>
+          articles: prev.articles.map((a) =>
             a.slug === article.slug ? data.article : a,
           ),
-        }),
-        false,
-      );
-    } catch (err) {
-      console.error("Error toggling like:", err);
+        };
+      }, false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      toast.error(`Error toggling like: ${message}`);
     }
   };
 
@@ -128,17 +130,20 @@ export default function Home() {
         },
       );
 
-      mutate(
-        (prev: any) => ({
+      mutate((prev: ArticlesResponse | undefined) => {
+        if (!prev) return prev;
+
+        return {
           ...prev,
-          articles: prev.articles.filter((a: any) => a.slug !== deleteSlug),
-        }),
-        false,
-      );
+          articles: prev.articles.filter((a) => a.slug !== deleteSlug),
+        };
+      }, false);
 
       setDeleteSlug(null);
-    } catch (err) {
-      console.error("Delete failed:", err);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      toast.error(`Error Deleting the comment: ${message}`);
     } finally {
       setDeleting(false);
     }
@@ -274,11 +279,11 @@ export default function Home() {
                 </p>
               )}
 
-              {articles.map((article: any) => (
+              {articles.map((article: Article) => (
                 <ArticleCard
                   key={article.slug}
                   article={article}
-                  currentUser={currentUser}
+                  currentUser={currentUsername}
                   hoveredArticle={hoveredArticle}
                   hoveredAuthor={hoveredAuthor}
                   setHoveredArticle={setHoveredArticle}

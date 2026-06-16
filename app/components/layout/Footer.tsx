@@ -1,7 +1,5 @@
-// Official Imports
 import Image from "next/image";
 
-// Custom Imports
 import logo from "../../assets/conduit-logo.svg";
 
 export default function Footer() {

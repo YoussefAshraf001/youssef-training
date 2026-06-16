@@ -1,9 +1,7 @@
 "use client";
 
-// Official Imports
 import useSWR from "swr";
 
-// Custom Imports
 import { useAuthStore } from "../store/AuthStore";
 import { fetchUser } from "../api/user";
 

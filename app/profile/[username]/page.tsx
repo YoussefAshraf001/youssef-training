@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
@@ -11,15 +10,14 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 
-// Custom Imports
 import { useUser } from "@/app/hooks/useUser";
 import { useAuthStore } from "@/app/store/AuthStore";
 import defaultavatar from "../../assets/default-avatar.svg";
-import { Profile } from "../../types/Profile";
 import { Article, ArticlesResponse } from "../../types/Articles";
 import TabButton from "@/app/components/ui/TabButton";
 import ArticleCard from "@/app/components/articles/ArticleCard/ArticleCard";
 import ConfirmModal from "@/app/components/ui/ConfirmModal/ConfirmModal";
+import { Profile } from "@/app/types/Profile";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;
 
@@ -186,9 +184,10 @@ export default function ProfilePage() {
           ),
         };
       }, false);
-    } catch (err) {
-      console.error("Error toggling follow:", err);
-      toast.error("Could not update follow status");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error deleteing article";
+      toast.error(`Could not delete the article: ${message}`);
     }
   };
 
@@ -216,8 +215,10 @@ export default function ProfilePage() {
 
       mutateArticles();
       setDeleteSlug(null);
-    } catch (err) {
-      console.error("Delete failed:", err);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Registeration Error";
+      toast.error(`Could not register: ${message}`);
     } finally {
       setDeleting(false);
     }

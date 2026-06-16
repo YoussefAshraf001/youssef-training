@@ -1,14 +1,20 @@
 import toast from "react-hot-toast";
+import type { KeyedMutator } from "swr";
 
 import type { Article } from "../types/Articles";
 
 type Author = Article["author"];
 type Tab = "Global Feed" | "Your Feed" | "Tag";
 
+type FeedState = {
+  articles?: Article[];
+  article?: Article;
+};
+
 export function useArticleActions(
   token: string | null,
   isLoggedIn: boolean,
-  mutate: any,
+  mutate: KeyedMutator<FeedState>,
 ) {
   const favorite = async (article: Article, slug: string) => {
     if (!isLoggedIn || !token) return;
@@ -23,7 +29,7 @@ export function useArticleActions(
         : article.favoritesCount + 1,
     };
 
-    mutate((prev: any) => ({ ...prev, article: optimistic }), false);
+    mutate((prev) => ({ ...prev, article: optimistic }), false);
 
     try {
       const res = await fetch(
@@ -66,7 +72,7 @@ export function useArticleActions(
 
     const data = await res.json();
 
-    mutate((prev: any) => {
+    mutate((prev) => {
       if (!prev) return prev;
 
       // 🔹 Feed page
@@ -76,7 +82,7 @@ export function useArticleActions(
           return {
             ...prev,
             articles: prev.articles.filter(
-              (a: any) => a.author.username !== author.username,
+              (a) => a.author.username !== author.username,
             ),
           };
         }
@@ -84,7 +90,7 @@ export function useArticleActions(
         // otherwise just update author
         return {
           ...prev,
-          articles: prev.articles.map((a: any) =>
+          articles: prev.articles.map((a) =>
             a.author.username === author.username
               ? { ...a, author: data.profile }
               : a,

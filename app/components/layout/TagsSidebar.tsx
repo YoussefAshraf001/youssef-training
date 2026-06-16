@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import useSWR from "swr";
 
 const apiRoot = process.env.NEXT_PUBLIC_API_ROOT;

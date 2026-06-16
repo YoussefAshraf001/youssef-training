@@ -1,4 +1,4 @@
-type Author = {
+export type Author = {
   username: string;
   image: string | null;
   following: boolean;

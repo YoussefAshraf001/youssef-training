@@ -1,15 +1,14 @@
 "use client";
 
-// Official Imports
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-// Custom Imports
 import { useUser } from "../hooks/useUser";
 import { useAuthStore } from "../store/AuthStore";
+import { UpdateProfileRequest } from "../types/Profile";
 
 export default function Settings() {
   const { user } = useUser();
@@ -40,21 +39,23 @@ export default function Settings() {
     });
   }, [user]);
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const token = useAuthStore.getState().token;
 
     try {
-      const body: any = {
+      const body: UpdateProfileRequest = {
         user: {
           username: form.username,
           email: form.email,
@@ -89,9 +90,10 @@ export default function Settings() {
       setToken(data.user.token);
       toast.success("Settings updated ✅");
       router.push(`/profile/${data.user.username}`);
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error Updating Profile";
+      toast.error(`Error Updating Profile: ${message}`);
     } finally {
       setLoading(false);
     }

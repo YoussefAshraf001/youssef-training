@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,9 +7,9 @@ import toast from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-// Custom Imports
 import { useAuthStore } from "../store/AuthStore";
 import FormInput from "../components/ui/inputs/FormInput";
+import { ApiError } from "../types/Errors";
 
 export default function Signin() {
   const router = useRouter();
@@ -28,7 +27,9 @@ export default function Signin() {
   const isDisabled =
     !form.email.trim() || !form.password.trim() || !isValidEmail(form.email);
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({
       ...form,
       [e.target.id]: e.target.value,
@@ -37,7 +38,7 @@ export default function Signin() {
 
   const setToken = useAuthStore((s) => s.setToken);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -68,13 +69,6 @@ export default function Signin() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.log("[auth flow] login failed:", {
-          status: res.status,
-          response: data,
-          email,
-          passwordLength: password.length,
-        });
-
         const message = getApiErrorMessage(
           data,
           "Email or password is invalid",
@@ -83,8 +77,6 @@ export default function Signin() {
         toast.error(message, { id: toastId });
         return;
       }
-
-      console.log("[auth flow] login token received:", data.user.token);
       setToken(data.user.token);
 
       toast.success("Welcome back", {
@@ -92,9 +84,9 @@ export default function Signin() {
       });
 
       router.push("/");
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong", { id: toastId });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error logging in ";
+      toast.error(`Could not login: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -171,7 +163,7 @@ export default function Signin() {
   );
 }
 
-function getApiErrorMessage(data: any, fallback: string) {
+function getApiErrorMessage(data: ApiError, fallback: string) {
   if (!data?.errors) {
     return data?.message || fallback;
   }

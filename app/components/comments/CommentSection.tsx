@@ -1,13 +1,17 @@
-// Official Imports
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { mutate } from "swr";
 
-// Custom Imports
 import defaultavatar from "../../assets/default-avatar.svg";
 import { useAuthStore } from "../../store/AuthStore";
+import { Article, CommentsResponse } from "@/app/types/Articles";
 
-function CommentSection({ article }: any) {
+type CommentSectionProps = {
+  article: Article;
+  onCommentPosted?: () => void;
+};
+
+function CommentSection({ article, onCommentPosted }: CommentSectionProps) {
   const [comment, setComment] = useState("");
   const token = useAuthStore((state) => state.token);
   const encodedSlug = encodeURIComponent(article.slug);
@@ -17,7 +21,7 @@ function CommentSection({ article }: any) {
     token,
   ];
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) return;
 
@@ -59,7 +63,7 @@ function CommentSection({ article }: any) {
 
       await mutate(
         commentsKey,
-        (prev: any) => {
+        (prev: CommentsResponse | undefined) => {
           if (!prev) return prev;
 
           return {
@@ -72,15 +76,19 @@ function CommentSection({ article }: any) {
 
       toast.success("Comment posted successfully!");
       setComment("");
+      onCommentPosted?.();
 
       await mutate(commentsKey);
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-      toast.error("Unable to post comment.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Unable to post comment.";
+      toast.error(`Error submitting comment: ${message}`);
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setComment(e.target.value);
   };
 

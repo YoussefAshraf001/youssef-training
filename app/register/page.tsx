@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,9 +8,9 @@ import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-// Custom Imports
 import { useAuthStore } from "../store/AuthStore";
 import FormInput from "../components/ui/inputs/FormInput";
+import { ApiError } from "../types/Errors";
 
 export default function Register() {
   const router = useRouter();
@@ -27,14 +26,16 @@ export default function Register() {
   const isDisabled =
     !form.username.trim() || !form.email.trim() || !form.password.trim();
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({
       ...form,
       [e.target.id]: e.target.value,
     });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const toastId = toast.loading("Creating account...");
@@ -70,8 +71,10 @@ export default function Register() {
 
       setToken(data.user.token);
       router.push("/");
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Registeration Error";
+      toast.error(`Could not register: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -157,7 +160,7 @@ export default function Register() {
   );
 }
 
-function getApiErrorMessage(data: any, fallback: string) {
+function getApiErrorMessage(data: ApiError, fallback: string) {
   if (!data?.errors) {
     return data?.message || fallback;
   }

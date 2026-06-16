@@ -1,22 +1,21 @@
-// Official Imports
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaHeart, FaRegEdit } from "react-icons/fa";
 import { MdDeleteOutline } from "react-icons/md";
 
-// Custom Imports
 import defaultavatar from "../../../assets/default-avatar.svg";
-import { Article } from "../../../types/Articles";
+import { Article, Author } from "../../../types/Articles";
+import Button from "../../ui/Button";
 
 type Props = {
   article: Article;
-  currentUser: any;
+  currentUser: string;
   hoveredArticle: string | null;
   hoveredAuthor: string | null;
   setHoveredArticle: (slug: string | null) => void;
   setHoveredAuthor: (slug: string | null) => void;
   onLike: (article: Article) => void;
-  onFollow: (author: any) => void;
+  onFollow: (author: Author) => void;
   onDelete: (slug: string) => void;
   onEdit: (slug: string) => void;
 };
@@ -73,7 +72,7 @@ export default function ArticleCard({
         </div>
 
         <div className="flex items-center gap-2">
-          {article.author.username !== currentUser?.username && (
+          {article.author.username !== currentUser && (
             <motion.div
               initial={{ x: 20, opacity: 0 }}
               animate={
@@ -83,22 +82,21 @@ export default function ArticleCard({
               }
               transition={{ duration: 0.25 }}
             >
-              <button
+              <Button
                 onClick={() => onFollow(article.author)}
                 className={`text-xs px-2 py-1 rounded border transition cursor-pointer
-                   ${
-                     article.author.following
-                       ? "bg-green-500 text-white border-green-500"
-                       : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
-                   }
-                   `}
+                  ${
+                    article.author.following
+                      ? "bg-green-500 text-white border-green-500"
+                      : "text-green-600 border-green-400 hover:bg-green-500 hover:text-white"
+                  }`}
               >
                 {article.author.following ? "Following" : "Follow"}
-              </button>
+              </Button>
             </motion.div>
           )}
 
-          {article.author.username === currentUser?.username && (
+          {article.author.username === currentUser && (
             <motion.div
               initial={{ x: 20, opacity: 0 }}
               animate={
@@ -109,23 +107,27 @@ export default function ArticleCard({
               transition={{ duration: 0.25 }}
               className="flex gap-2"
             >
-              <button
+              <Button
+                icon={<FaRegEdit />}
+                children="Edit Article"
                 onClick={() => onEdit(article.slug)}
-                className="h-6 w-25 text-sm text-zinc-300 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
-              >
-                <FaRegEdit /> Edit Article
-              </button>
+                className={
+                  "h-7 w-25 text-sm text-zinc-600 hover:text-white flex justify-center items-center gap-1 border border-zinc-400 hover:bg-zinc-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                }
+              />
 
-              <button
+              <Button
+                icon={<MdDeleteOutline />}
+                children="Delete Article"
                 onClick={() => onDelete(article.slug)}
-                className="h-6 w-31 text-sm text-red-600 hover:text-white flex justify-center items-center gap-1 border border-red-400 hover:bg-red-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
-              >
-                <MdDeleteOutline /> Delete Article
-              </button>
+                className={
+                  "h-6 w-31 text-sm text-red-600 hover:text-white flex justify-center items-center gap-1 border border-red-400 hover:bg-red-500 rounded-md transition-all ease-in-out duration-200 cursor-pointer"
+                }
+              />
             </motion.div>
           )}
 
-          <div
+          <Button
             onClick={() => onLike(article)}
             className={`flex items-center gap-1 border rounded-md cursor-pointer text-xs px-2 py-1
                ${
@@ -136,7 +138,7 @@ export default function ArticleCard({
                `}
           >
             <FaHeart /> {article.favoritesCount}
-          </div>
+          </Button>
         </div>
       </div>
 

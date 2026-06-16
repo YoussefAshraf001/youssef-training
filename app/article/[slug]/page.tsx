@@ -1,6 +1,5 @@
 "use client";
 
-// Official imports
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { IoMdAdd } from "react-icons/io";
@@ -11,7 +10,6 @@ import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import useSWR from "swr";
 
-// Custom imports
 import { useUser } from "../../hooks/useUser";
 import { useAuthStore } from "../../store/AuthStore";
 import CommentSection from "../../components/comments/CommentSection";
@@ -87,7 +85,7 @@ function Page() {
       </div>
     );
 
-  const isOwnArticle = user?.username === article.author.username;
+  const hasArticle = user?.username === article.author.username;
 
   return (
     <>
@@ -117,7 +115,7 @@ function Page() {
               </p>
             </div>
             <div className="flex gap-2 pl-5">
-              {isOwnArticle ? (
+              {hasArticle ? (
                 <>
                   <button
                     onClick={() =>
@@ -151,7 +149,7 @@ function Page() {
                     : `Follow ${article.author.username}`}
                 </button>
               )}
-              {!isOwnArticle && (
+              {!hasArticle && (
                 <button
                   onClick={() => favorite(article, article.slug)}
                   className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${
@@ -181,7 +179,7 @@ function Page() {
           </ReactMarkdown>
         </div>
         <div className="my-6 flex flex-wrap gap-2">
-          {article.tagList.map((tag: any, index: any) => (
+          {article.tagList.map((tag: string, index: number) => (
             <span
               key={index}
               className="px-3 py-1 text-zinc-400 text-sm rounded-full border border-zinc-200"
@@ -210,7 +208,7 @@ function Page() {
             </p>
           </div>
           <div className="flex gap-2 pl-5">
-            {isOwnArticle ? (
+            {hasArticle ? (
               <>
                 <button
                   onClick={() =>
@@ -234,7 +232,7 @@ function Page() {
                 <IoMdAdd /> Follow {article.author.username}
               </button>
             )}
-            {!isOwnArticle && (
+            {!hasArticle && (
               <button
                 onClick={() => favorite(article, article.slug)}
                 className={`h-6 w-35 text-sm flex justify-center items-center gap-1 border rounded-md transition-all ease-in-out duration-200 cursor-pointer ${

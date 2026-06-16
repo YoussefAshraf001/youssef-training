@@ -1,6 +1,5 @@
 "use client";
 
-// Official Imports
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
@@ -9,7 +8,6 @@ import useSWR from "swr";
 import toast from "react-hot-toast";
 import { MdDelete } from "react-icons/md";
 
-// Custom Imports
 import { Comment } from "../../types/Articles";
 import { useAuthStore } from "../../store/AuthStore";
 import ConfirmModal from "../ui/ConfirmModal/ConfirmModal";
@@ -66,12 +64,12 @@ function CommentList({ slug, currentUser }: CommentListProps) {
         },
       );
 
-      await mutate((prev: any) => {
+      await mutate((prev) => {
         if (!prev) return prev;
 
         return {
           ...prev,
-          comments: prev.comments.filter((c: any) => c.id !== deleteCommentId),
+          comments: prev.comments.filter((c) => c.id !== deleteCommentId),
         };
       }, false);
 
@@ -79,8 +77,14 @@ function CommentList({ slug, currentUser }: CommentListProps) {
       toast("Comment deleted successfully!", {
         icon: <MdDelete size={22} className="text-red-500 mb-1.75" />,
       });
-    } catch (err) {
-      console.error("Error deleting comment:", err);
+    } catch (err: unknown) {
+      if (Array.isArray(err)) {
+        toast.error(err.join(", "));
+      } else if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error(String(err));
+      }
     } finally {
       setDeleting(false);
     }
