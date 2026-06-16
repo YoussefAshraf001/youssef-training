@@ -24,11 +24,6 @@ export default function Navbar() {
   const base = "text-zinc-400 hover:text-zinc-600";
   const active = "text-zinc-800";
 
-  const handleClearStorage = () => {
-    localStorage.clear();
-    window.location.reload(); // optional but usually helpful
-  };
-
   return (
     <div className="w-full py-4 border-b z-40">
       <div className="flex items-center justify-between w-full px-4 max-w-6xl mx-auto">
@@ -71,14 +66,6 @@ export default function Navbar() {
             sm:flex sm:static sm:w-auto sm:flex-row sm:items-center sm:gap-4 sm:p-0 sm:border-none sm:bg-transparent sm:ml-auto sm:translate-y-0 sm:opacity-100 sm:pointer-events-auto
           `}
         >
-          <li>
-            <button
-              onClick={handleClearStorage}
-              className="flex gap-1 items-center text-red-500 hover:text-red-700"
-            >
-              Clear Storage
-            </button>
-          </li>
           <li>
             <Link href="/" className={isActive("/") ? active : base}>
               Home
